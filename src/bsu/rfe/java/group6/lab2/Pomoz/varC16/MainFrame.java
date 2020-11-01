@@ -2,9 +2,8 @@ package bsu.rfe.java.group6.lab2.Pomoz.varC16;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Image;
+import javax.swing.ImageIcon;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,19 +14,20 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 @SuppressWarnings("serial")
 
 public class MainFrame extends JFrame {
-    private static final int WIDTH = 400;
-    private static final int HEIGHT = 320;
+    private static final int WIDTH = 600;
+    private static final int HEIGHT = 420;
 
     private JTextField textFieldX;
     private JTextField textFieldY;
     private JTextField textFieldZ;
+
+    private JLabel imageLabel;
 
     private JTextField textFieldResult;
     // Группа радио-кнопок для обеспечения уникальности выделения в группе
@@ -52,6 +52,8 @@ public class MainFrame extends JFrame {
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 MainFrame.this.formulaId = formulaId;
+                if (formulaId == 1)	imageLabel.setIcon(new ImageIcon(MainFrame.class.getResource("Formula_1.png")));
+                if (formulaId == 2) imageLabel.setIcon(new ImageIcon(MainFrame.class.getResource("Formula_2.png")));
             }
         });
         radioButtons.add(button);
@@ -71,8 +73,13 @@ public class MainFrame extends JFrame {
         radioButtons.setSelected(
                 radioButtons.getElements().nextElement().getModel(), true);
         hBoxFormulaType.add(Box.createHorizontalGlue());
-        hBoxFormulaType.setBorder(
-                BorderFactory.createLineBorder(Color.YELLOW));
+
+        Box hBoxFormulaImage = Box.createHorizontalBox();
+        hBoxFormulaImage.add(Box.createHorizontalGlue());
+        imageLabel = new JLabel(new ImageIcon(MainFrame.class.getResource("Formula_1.png")));
+        hBoxFormulaImage.add(imageLabel);
+        hBoxFormulaImage.add(Box.createHorizontalGlue());
+        
 // Создать область с полями ввода для X и Y
         JLabel labelForX = new JLabel("X:");
         textFieldX = new JTextField("0", 10);
@@ -139,6 +146,7 @@ public class MainFrame extends JFrame {
             }
         });
 
+
         JButton buttonReset = new JButton("Очистить поля");
         buttonReset.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
@@ -161,6 +169,7 @@ public class MainFrame extends JFrame {
         Box contentBox = Box.createVerticalBox();
         contentBox.add(Box.createVerticalGlue());
         contentBox.add(hBoxFormulaType);
+        contentBox.add(hBoxFormulaImage);
         contentBox.add(hboxVariables);
         contentBox.add(hboxResult);
         contentBox.add(hboxButtons);
