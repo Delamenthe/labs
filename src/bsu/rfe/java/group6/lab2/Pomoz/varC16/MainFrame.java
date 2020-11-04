@@ -263,8 +263,7 @@ public class MainFrame extends JFrame {
                 }
             }
         });
-
-
+        
         hBoxMemoryType.add(Box.createHorizontalGlue());
         addMemoryRadioButton("Память 1", 1);
         addMemoryRadioButton("Память 2", 2);
