@@ -369,8 +369,9 @@ public class MainFrame extends JFrame {
         contentBox.add(hBoxButtons);
 // Добавить контейнер с выбором памяти
         contentBox.add(hBoxMemoryType);
-//Добавить резултат
+//Добавить результат
         contentBox.add(hBoxControlButtons);
+        contentBox.add(hBoxMemoryField);
 //Добавить «клей» V2 снизу
         contentBox.add(Box.createVerticalGlue());
 //Установить «вертикальную коробку» в область содержания главного окна
