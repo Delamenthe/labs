@@ -59,7 +59,6 @@ public class Main
                     else return 0;
                 }
             });
-
             System.out.println("Завтрак (отсортированный вариант):");
 
         } else {
@@ -135,7 +134,7 @@ public class Main
                 if (flag5){
                     if (item != null) {
                         if (item.equals(Sandwich1) || item.equals(Sandwich2) || item.equals(Sandwich3)
-                                || item.equals(4) || item.equals(Sandwich5) || item.equals(Sandwich6))
+                                || item.equals(Sandwich4) || item.equals(Sandwich5) || item.equals(Sandwich6))
                             sandwich++;
                     }}
             }

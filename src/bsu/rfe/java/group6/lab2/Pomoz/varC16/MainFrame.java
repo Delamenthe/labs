@@ -29,9 +29,7 @@ public class MainFrame extends JFrame {
     private JTextField textFieldY;
     private JTextField textFieldZ;
 
-
     private JLabel imageLabel;
-
 
     private JTextField memoryTextField;
     private JTextField resultFieldText;
@@ -44,7 +42,6 @@ public class MainFrame extends JFrame {
     private Box hBoxFormulaType = Box.createHorizontalBox();
     private Box hBoxMemoryType = Box.createHorizontalBox();
 
-
     //Переменная, указывающая, какая из формул является  активной  в  данный  момент
     private int formulaId = 1;
     private int memoryId= 1;
@@ -55,14 +52,6 @@ public class MainFrame extends JFrame {
 
     //Формула №1 для рассчѐта
     public Double calculate1(Double x, Double y, Double z) {
-
-        if (z == 0)	{
-            JOptionPane.showMessageDialog(MainFrame.this,
-                    "z не может равняться нулю", "" +
-                            "Ошибка ввода", JOptionPane.WARNING_MESSAGE);
-            return 0.0;
-        }
-
         if (y == 0)	{
             JOptionPane.showMessageDialog(MainFrame.this,
                     "y не может равняться нулю",
@@ -81,9 +70,9 @@ public class MainFrame extends JFrame {
                             "Ошибка ввода", JOptionPane.WARNING_MESSAGE);
             return 0.0;
         }
-        if (z <= -1)	{
+        if (y == -1)	{
             JOptionPane.showMessageDialog(MainFrame.this,
-                    "z не может равняться -1 и меньше", "" +
+                    "y не может равняться -1", "" +
                             "Ошибка ввода", JOptionPane.WARNING_MESSAGE);
             return 0.0;
         }
@@ -91,7 +80,7 @@ public class MainFrame extends JFrame {
         return (Math.pow(Math.cos(Math.exp(x))+Math.log(Math.pow((1+y),2))+Math.sqrt(Math.exp(Math.cos(x))+Math.pow(Math.sin(Math.PI*z),2))+Math.sqrt(1/x)+Math.cos(Math.pow(y,2)),Math.sin(z)));
     }
 
-    //Вспомогательный метод для добавления кнопок на панель
+//Вспомогательный метод для добавления кнопок на панель
 //buttonName – текст рядом с кнопкой, formulaId – идентификатор формулы
     private void addRadioButton(String buttonName, final int formulaId) {
         //Создать экземпляр радио-кнопки с заданным текстом
@@ -263,7 +252,8 @@ public class MainFrame extends JFrame {
                 }
             }
         });
-        
+
+
         hBoxMemoryType.add(Box.createHorizontalGlue());
         addMemoryRadioButton("Память 1", 1);
         addMemoryRadioButton("Память 2", 2);
