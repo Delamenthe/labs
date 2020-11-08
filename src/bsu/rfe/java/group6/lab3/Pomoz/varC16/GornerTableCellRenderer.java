@@ -19,6 +19,8 @@ public class GornerTableCellRenderer implements TableCellRenderer {
     // Ищем ячейки, строковое представление которых совпадает с needle
 // (иголкой).
     private String needle = null;
+    private String needleFrom = null;
+    private String needleTo = null;
     private DecimalFormat formatter =
             (DecimalFormat)NumberFormat.getInstance();
     public GornerTableCellRenderer() {
@@ -43,22 +45,67 @@ public class GornerTableCellRenderer implements TableCellRenderer {
                                                    Object value, boolean isSelected, boolean hasFocus, int row, int col) {
 // Преобразовать double в строку с помощью форматировщика
         String formattedDouble = formatter.format(value);
-// Установить текст надписи равным строковому представлению числа
-        label.setText(formattedDouble);
-        if (col==1 && needle!=null && needle.equals(formattedDouble)) {
-            panel.setBackground(Color.RED);
-        } else if(col%2==0 && row%2==0 || col%2==1 && row%2==1){
 
+        // Установить текст надписи равным строковому представлению числа
+        label.setText(formattedDouble);
+        if (col%2==0 && row%2==0 || col%2==1 && row%2==1){
             panel.setBackground(Color.BLACK);
             label.setForeground(Color.WHITE);
-        }else
-        {
+        }else {
             panel.setBackground(Color.WHITE);
             label.setForeground(Color.BLACK);
         }
+
+        if (col >= 1 && needle!=null && needle.equals(formattedDouble)) {
+            panel.setBackground(Color.RED);
+            label.setForeground(Color.BLACK);
+        }
+
+        if(needleFrom!=null && needleTo!=null){
+            Double coefficients1 =null;
+            Double coefficients2 = null;
+            Double coefficients3 = null;
+            try{
+                coefficients1 = Double.parseDouble(needleFrom);
+                coefficients2 = Double.parseDouble(needleTo);
+                coefficients3 = Double.parseDouble(formattedDouble);
+            }catch(NullPointerException e){
+
+            }
+
+            if(col >= 1 && (coefficients3 <= coefficients2) && (coefficients3 >= coefficients1))
+            {
+                panel.setBackground(Color.GREEN);
+                label.setForeground(Color.BLACK);
+            }
+        }
         return panel;
+
     }
     public void setNeedle(String needle) {
         this.needle = needle;
     }
+
+    public void setNeedleFrom(String needleFrom) {
+        this.needleFrom = needleFrom;
+    }
+
+    public void setNeedleTo(String needleTo) {
+        this.needleTo = needleTo;
+    }
+
+    public String getNeedleFrom() {
+        return needleFrom;
+    }
+
+    public String getNeedleTo() {
+        return needleTo;
+    }
+
+    public void setNeedle1(String needleFrom, String needleTo)
+    {
+        this.needleFrom = needleFrom;
+        this.needleTo = needleTo;
+    }
+
 }

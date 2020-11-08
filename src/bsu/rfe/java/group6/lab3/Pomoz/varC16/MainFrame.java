@@ -26,6 +26,7 @@ public class MainFrame extends JFrame{
     private JMenuItem saveToTextMenuItem;
     private JMenuItem saveToGraphicsMenuItem;
     private JMenuItem searchValueMenuItem;
+    private JMenuItem searchRangeMenuItem;
     private JMenuItem aboutMenuItem;
     // Поля ввода для считывания значений переменных
     private JTextField textFieldFrom;
@@ -119,11 +120,32 @@ saveToTextMenuItem.setEnabled(false);
 // Добавить соответствующий пункт подменю в меню "Файл"
 saveToGraphicsMenuItem = fileMenu.add(saveToGraphicsAction);
 // По умолчанию пункт меню является недоступным(данных ещѐ нет)
-
         saveToGraphicsMenuItem.setEnabled(false);
+
+// Создать новое действие по поиску значений многочлена из диапазона
+        Action searchRangeAction = new AbstractAction("Найти из диапазона") {
+            public void actionPerformed(ActionEvent event) {
+                renderer.setNeedle(null);
+// Запросить пользователя ввести искомую строку
+                String value1 = JOptionPane.showInputDialog(MainFrame.this,"Введите значение начала отрезка",
+                        "Поиск значения из диапазона", JOptionPane.QUESTION_MESSAGE);
+
+                String value2 = JOptionPane.showInputDialog(MainFrame.this,"Введите значение конца отрезка",
+                        "Поиск значения из диапазона", JOptionPane.QUESTION_MESSAGE);
+                renderer.setNeedle1(value1, value2);
+// Обновить таблицу
+                getContentPane().repaint();
+            }
+        };
+// Добавить действие в меню "Таблица"
+        searchRangeMenuItem = tableMenu.add(searchRangeAction);
+// По умолчанию пункт меню является недоступным (данных ещѐ нет)
+        searchRangeMenuItem.setEnabled(false);
+
 // Создать новое действие по поиску значений многочлена
         Action searchValueAction = new AbstractAction("Найти значение многочлена") {
 public void actionPerformed(ActionEvent event) {
+    renderer.setNeedle1(null, null);
 // Запросить пользователя ввести искомую строку
         String value = JOptionPane.showInputDialog(MainFrame.this, "Введите значение для поиска",
         "Поиск значения", JOptionPane.QUESTION_MESSAGE);
@@ -226,7 +248,7 @@ public void actionPerformed(ActionEvent ev) {
         saveToTextMenuItem.setEnabled(true);
         saveToGraphicsMenuItem.setEnabled(true);
         searchValueMenuItem.setEnabled(true);
-        aboutMenuItem.setEnabled(true);
+        searchRangeMenuItem.setEnabled(true);
         } catch (NumberFormatException ex) {
 // В случае ошибки преобразования чисел показать сообщение об ошибке
         JOptionPane.showMessageDialog(MainFrame.this,
@@ -251,7 +273,7 @@ public void actionPerformed(ActionEvent ev) {
 // Пометить элементы меню как недоступные
         saveToTextMenuItem.setEnabled(false);
         saveToGraphicsMenuItem.setEnabled(false);
-        searchValueMenuItem.setEnabled(false);
+
 // Обновить область содержания главного окна
         getContentPane().validate();
         }
