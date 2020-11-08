@@ -17,8 +17,7 @@ public class GornerTableCellRenderer implements TableCellRenderer {
     private JPanel panel = new JPanel();
     private JLabel label = new JLabel();
     // Ищем ячейки, строковое представление которых совпадает с needle
-// (иголкой). Применяется аналогия поиска иголки в стоге сена, в роли
-// стога сена - таблица
+// (иголкой).
     private String needle = null;
     private DecimalFormat formatter =
             (DecimalFormat)NumberFormat.getInstance();
@@ -30,8 +29,7 @@ public class GornerTableCellRenderer implements TableCellRenderer {
 // а не "1 000" или "1,000"
         formatter.setGroupingUsed(false);
 // Установить в качестве разделителя дробной части точку, а не
-// запятую. По умолчанию, в региональных настройках
-// Россия/Беларусь дробная часть отделяется запятой
+// запятую
         DecimalFormatSymbols dottedDouble =
                 formatter.getDecimalFormatSymbols();
         dottedDouble.setDecimalSeparator('.');
@@ -48,14 +46,15 @@ public class GornerTableCellRenderer implements TableCellRenderer {
 // Установить текст надписи равным строковому представлению числа
         label.setText(formattedDouble);
         if (col==1 && needle!=null && needle.equals(formattedDouble)) {
-// Номер столбца = 1 (т.е. второй столбец) + иголка не null
-// (значит что-то ищем) +
-// значение иголки совпадает со значением ячейки таблицы -
-// окрасить задний фон панели в красный цвет
             panel.setBackground(Color.RED);
-        } else {
-// Иначе - в обычный белый
+        } else if(col%2==0 && row%2==0 || col%2==1 && row%2==1){
+
+            panel.setBackground(Color.BLACK);
+            label.setForeground(Color.WHITE);
+        }else
+        {
             panel.setBackground(Color.WHITE);
+            label.setForeground(Color.BLACK);
         }
         return panel;
     }

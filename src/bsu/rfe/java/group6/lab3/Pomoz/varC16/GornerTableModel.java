@@ -25,7 +25,6 @@ public class GornerTableModel extends AbstractTableModel {
         return step;
     }
     public int getColumnCount() {
-// В данной модели два столбца
         return 4;
     }
     public int getRowCount() {
