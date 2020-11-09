@@ -24,7 +24,6 @@ public class MainFrame extends JFrame {
     private static final int WIDTH = 600;
     private static final int HEIGHT = 420;
 
-
     private JTextField textFieldX;
     private JTextField textFieldY;
     private JTextField textFieldZ;
@@ -58,7 +57,6 @@ public class MainFrame extends JFrame {
                     "Ошибка ввода", JOptionPane.WARNING_MESSAGE);
             return 0.0;
         }
-
         return (Math.sin(Math.log(y)+Math.sin(Math.PI*y*y))*Math.pow(x*x+Math.sin(z)+Math.exp(Math.cos(z)),1/4));
     }
 
@@ -76,7 +74,6 @@ public class MainFrame extends JFrame {
                             "Ошибка ввода", JOptionPane.WARNING_MESSAGE);
             return 0.0;
         }
-
         return (Math.pow(Math.cos(Math.exp(x))+Math.log(Math.pow((1+y),2))+Math.sqrt(Math.exp(Math.cos(x))+Math.pow(Math.sin(Math.PI*z),2))+Math.sqrt(1/x)+Math.cos(Math.pow(y,2)),Math.sin(z)));
     }
 
@@ -113,11 +110,9 @@ public class MainFrame extends JFrame {
                 if (memoryId == 3)	memoryTextField.setText(mem3.toString());
             }
         });
-
         radioMemoryButtons.add(button);
         hBoxMemoryType.add(button);
     }
-
 
     //Конструктор класса
     public MainFrame() {
@@ -143,17 +138,14 @@ public class MainFrame extends JFrame {
 //Добавить «клей» C1-H2 с правой стороны
         hBoxFormulaType.add(Box.createHorizontalGlue());
 
-
         Box hBoxFormulaImage = Box.createHorizontalBox();
         hBoxFormulaImage.add(Box.createHorizontalGlue());
         imageLabel = new JLabel(new ImageIcon(MainFrame.class.getResource("Formula_1.png")));
         hBoxFormulaImage.add(imageLabel);
         hBoxFormulaImage.add(Box.createHorizontalGlue());
 
-
-
         JLabel labelForX = new JLabel("X:");
-        textFieldX = new JTextField("", 10);
+        textFieldX = new JTextField("", 5);
         textFieldX.setMaximumSize(textFieldX.getPreferredSize());
         JLabel labelForY = new JLabel("Y:");
         textFieldY = new JTextField("", 10);
@@ -340,7 +332,6 @@ public class MainFrame extends JFrame {
 //Задать рамку для контейнера
         hBoxButtons.setBorder(BorderFactory.createLineBorder(Color.GREEN));
 
-
 // Связать области воедино в компоновке BoxLayout
 //Создать контейнер «коробка с вертикальной укладкой»
         Box contentBox = Box.createVerticalBox();
@@ -367,7 +358,6 @@ public class MainFrame extends JFrame {
         getContentPane().add(contentBox, BorderLayout.CENTER);
 
     }
-
     //Главный метод класса
     public static void main(String[] args) {
         MainFrame frame = new MainFrame();
