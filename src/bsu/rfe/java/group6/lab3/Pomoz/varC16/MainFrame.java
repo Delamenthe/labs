@@ -13,7 +13,6 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import javax.swing.*;
 
-
 public class MainFrame extends JFrame {
     // Константы с исходным размером окна приложения
     private static final int WIDTH = 700;
@@ -40,10 +39,11 @@ public class MainFrame extends JFrame {
     private JTextField textFieldStep;
     private Box hBoxResult;
 
+    private DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
+
     // Визуализатор ячеек таблицы
     private GornerTableCellRenderer renderer = new GornerTableCellRenderer();
 
-    private DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
     // Модель данных с результатами вычислений
     private GornerTableModel data;
 
@@ -131,7 +131,7 @@ public class MainFrame extends JFrame {
         // По умолчанию пункт меню является недоступным (данных еще нет)
         saveToGraphicsMenuItem.setEnabled(false);
 
-        Action saveToCVSAction = new AbstractAction("Сохранить в CSV-файл") {
+        Action saveToCSVAction = new AbstractAction("Сохранить в CSV-файл") {
             public void actionPerformed(ActionEvent arg0) {
                 if (fileChooser == null) {
                     // Если диалоговое окно "Открыть файл" еще не создано,
@@ -148,7 +148,7 @@ public class MainFrame extends JFrame {
         };
 
         // Добавить соответствующий пункт подменю в меню "Файл"
-        commaSeparatedValues = fileMenu.add(saveToCVSAction);
+        commaSeparatedValues = fileMenu.add(saveToCSVAction);
         // По умолчанию пункт меню является недоступным (данных еще нет)
         commaSeparatedValues.setEnabled(false);
 
@@ -304,7 +304,8 @@ public class MainFrame extends JFrame {
 // Пометить элементы меню как недоступные
                 saveToTextMenuItem.setEnabled(false);
                 saveToGraphicsMenuItem.setEnabled(false);
-
+                saveToCSVFile.setEnabled(false);
+                commaSeparatedValues.setEnabled(false);
 // Обновить область содержания главного окна
                 getContentPane().validate();
             }
@@ -379,7 +380,13 @@ public class MainFrame extends JFrame {
 
     protected void saveToCSVFile(File selectedFile) {
         try {
-            Csv.Writer writer = new Csv.Writer(selectedFile);
+            Csv.Writer writer = new Csv.Writer(selectedFile).delimiter(',');
+            DecimalFormat formatter = (DecimalFormat)NumberFormat.getInstance();
+            formatter.setMaximumFractionDigits(10);
+            formatter.setGroupingUsed(false);
+            DecimalFormatSymbols dottedDouble = formatter.getDecimalFormatSymbols();
+            dottedDouble.setDecimalSeparator('.');
+            formatter.setDecimalFormatSymbols(dottedDouble);
             writer.value("Результаты табулирования многочлена по схеме Горнера");
             writer.newLine();
             writer.value("Интервал от " + data.getFrom() + " до " + data.getTo() + " с шагом " + data.getStep());

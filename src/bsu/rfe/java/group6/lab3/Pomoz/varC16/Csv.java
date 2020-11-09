@@ -8,6 +8,32 @@ import java.io.BufferedReader;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * As far as CSV files are generally used by Excel, the default behavior of Csv.Reader and Csv.Writer
+ * corresponds to the Excel behaviour.
+ * In order to switch to the proper behaviour :) please use the following properties:
+ *  - for Csv.Writer: delimiter will set the custom delimiter (default: semicolon)
+ *  - for Csv.Reader: delimiter will set the custom delimiter (default: semicolon);
+ *                    preserveSpaces will preserve spaces from being trimmed (default: true);
+ *                    ignoreEmptyLines will ignore reading of empty lines (default: false);
+ *                    ignoreComments will ignore reading of comments (default: false).
+ *
+ * Examples of usage:
+ *
+ * Csv.Writer writer = new Csv.Writer("filename").delimiter(',');
+ * writer.comment("example of csv").value("a").value("b").newLine().value("c").close();
+ *
+ * A piece of code shown above will generate the following CSV file:
+ * #example of csv
+ * a,b
+ * c
+ *
+ * Csv.Reader reader = new Csv.Reader(new FileReader("filename")).delimiter(',').ignoreComments(true);
+ * System.out.println(reader.readLine());
+ *
+ * A piece of code shown above will print to console the following text (using the CSV file generated earlier):
+ * [a, b]
+ */
 public class Csv {
     public static class Writer {
         private Appendable appendable;
