@@ -79,7 +79,7 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent event) {
                 Box info = Box.createVerticalBox();
                 JLabel author = new JLabel("Автор: Помоз Арина Витальевна, 6 группа");
-                JLabel image = new JLabel(new ImageIcon(MainFrame.class.getResource("img.jpg")));
+                JLabel image = new JLabel(new ImageIcon(MainFrame.class.getResource("photo.png")));
                 info.add(author);
                 info.add(image);
                 JOptionPane.showMessageDialog(MainFrame.this, info, "О программе", JOptionPane.INFORMATION_MESSAGE);
