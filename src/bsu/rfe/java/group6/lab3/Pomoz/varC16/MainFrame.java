@@ -387,14 +387,14 @@ public class MainFrame extends JFrame {
             DecimalFormatSymbols dottedDouble = formatter.getDecimalFormatSymbols();
             dottedDouble.setDecimalSeparator('.');
             formatter.setDecimalFormatSymbols(dottedDouble);
-            writer.value("Результаты табулирования многочлена по схеме Горнера");
+            writer.value("The results of the tabulation of a polynomial by Horner's scheme");
             writer.newLine();
-            writer.value("Интервал от " + data.getFrom() + " до " + data.getTo() + " с шагом " + data.getStep());
+            writer.value("The interval from " + data.getFrom() + " to " + data.getTo() + " in increments " + data.getStep());
             writer.newLine();
-            writer.value("Значение X");
-            writer.value("Значение многочлена");
-            writer.value("Наоборот");
-            writer.value("Разница");
+            writer.value("The Value Of X");
+            writer.value("Value of the polynomial");
+            writer.value("In reverse order");
+            writer.value("Difference between 2 and 3 columns");
             writer.newLine();
             for (int i = 0; i < data.getRowCount(); i++) {
                 for (int k = 0; k < data.getColumnCount(); k++) {

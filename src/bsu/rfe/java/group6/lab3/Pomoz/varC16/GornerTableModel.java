@@ -39,23 +39,22 @@ public class GornerTableModel extends AbstractTableModel {
             case 0:
                 return x;
             case 1: {
-                result[0] = 0.0;
+                result[0] = coefficients[coefficients.length-1];
 // Вычисление значения в точке по схеме Горнера.
-                for (int i = 0; i < coefficients.length; i++) {
-                    result[0] += Math.pow(x, coefficients.length - 1 - i) * coefficients[i];
+                for (int i = coefficients.length-2; i >=0; i--) {
+                    result[0] = result[0]*x+coefficients[i];
                 }
                 return result[0];
             }
             case 2: {
-                result[1] = 0.0;
-                int p = coefficients.length - 1;
-                for (int i = 0; i < coefficients.length; i++) {
-                    result[1] += Math.pow(x, coefficients.length - 1 - i) * coefficients[p--];
+                result[1] = coefficients[0];
+                for (int i = 1; i < coefficients.length; i++) {
+                    result[1] =result[1]*x+coefficients[i];
                 }
                 return result[1];
             }
             default:
-                return result[2] = result[1] - result[0];
+                return result[2] = Math.abs(result[1] - result[0]);
         }
     }
     public String getColumnName(int col) {
