@@ -304,8 +304,9 @@ public class MainFrame extends JFrame {
 // Пометить элементы меню как недоступные
                 saveToTextMenuItem.setEnabled(false);
                 saveToGraphicsMenuItem.setEnabled(false);
-                saveToCSVFile.setEnabled(false);
                 commaSeparatedValues.setEnabled(false);
+                searchRangeAction.setEnabled(false);
+                searchValueAction.setEnabled(false);
 // Обновить область содержания главного окна
                 getContentPane().validate();
             }
