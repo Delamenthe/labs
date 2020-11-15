@@ -1,7 +1,5 @@
 package bsu.rfe.java.group6.lab4.Pomoz.varC16;
 
-import javafx.scene.shape.Polyline;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -10,7 +8,6 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -43,7 +40,7 @@ public class GraphicsDisplay extends JPanel{
 // Сконструировать необходимые объекты, используемые в рисовании
 // Перо для рисования графика
         graphicsStroke = new BasicStroke(2.0f, BasicStroke.CAP_BUTT,
-                BasicStroke.JOIN_ROUND, 10.0f, null, 0.0f);
+                BasicStroke.JOIN_ROUND, 10.0f,new float[] {4,1,1,1,1,1,2,1,2,1}, 0.0f);
 // Перо для рисования осей координат
         axisStroke = new BasicStroke(2.0f, BasicStroke.CAP_BUTT,
                 BasicStroke.JOIN_MITER, 10.0f, null, 0.0f);
@@ -147,9 +144,7 @@ public class GraphicsDisplay extends JPanel{
     // Отрисовка графика по прочитанным координатам
     protected void paintGraphics(Graphics2D canvas) {
 // Выбрать линию для рисования графика
-        BasicStroke line = new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
-                BasicStroke.JOIN_ROUND, 10.0f, new float[] {4,1,1,1,1,1,2,1,2,1}, 0.0f);
-        canvas.setStroke(line);
+      canvas.setStroke(graphicsStroke);
 // Выбрать цвет линии
         canvas.setColor(Color.RED);
 /* Будем рисовать линию графика как путь, состоящий из множества cегментов (GeneralPath)
@@ -178,6 +173,26 @@ public class GraphicsDisplay extends JPanel{
         canvas.setStroke(markerStroke);
         canvas.setColor(Color.RED);
         for (Double[] point: graphicsData) {
+            double y=point[1];
+            while(Math.abs(y-Math.round(y))>0)
+                y*=10;
+            boolean flag=true;
+            double c1=y%10, c2;
+            y/=10;
+            while (Math.abs(y)>0){
+                c2=y%10;
+                y/=10;
+                if(c1<c2){
+                    flag = false;
+                    break;
+                }
+                c1=c2;
+            }
+            if (flag)
+                canvas.setColor(Color.BLUE);
+            else
+                canvas.setColor(Color.RED);
+
             Point2D.Double center = xyToPoint(point[0], point[1]);
             canvas.draw(new Line2D.Double(shiftPoint(center,-5,5),shiftPoint(center,5,-5)));
             canvas.draw(new Line2D.Double(shiftPoint(center,5,5),shiftPoint(center,-5,-5)));
