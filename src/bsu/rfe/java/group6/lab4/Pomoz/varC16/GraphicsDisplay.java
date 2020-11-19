@@ -8,11 +8,15 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+
+
 import javax.swing.JPanel;
+
 
 @SuppressWarnings("serial")
 public class GraphicsDisplay extends JPanel{
@@ -21,6 +25,7 @@ public class GraphicsDisplay extends JPanel{
     // Флаговые переменные, задающие правила отображения графика
     private boolean showAxis = true;
     private boolean showMarkers = true;
+    private boolean antiClockRotate = false;
     // Границы диапазона пространства, подлежащего отображению
     private double minX;
     private double maxX;
@@ -68,6 +73,7 @@ public class GraphicsDisplay extends JPanel{
         this.showMarkers = showMarkers;
         repaint();
     }
+
     // Метод отображения всего компонента, содержащего график
     public void paintComponent(Graphics g) {
         /* Шаг 1 - Вызвать метод предка для заливки области цветом заднего фона
@@ -99,9 +105,11 @@ public class GraphicsDisplay extends JPanel{
 */
         double scaleX = getSize().getWidth() / (maxX - minX);
         double scaleY = getSize().getHeight() / (maxY - minY);
+
 // Шаг 5 - Чтобы изображение было неискажѐнным - масштаб должен быть одинаков
 // Выбираем за основу минимальный
         scale = Math.min(scaleX, scaleY);
+
 // Шаг 6 - корректировка границ отображаемой области согласно выбранному масштабу
         if (scale==scaleX) {
 /* Если за основу был взят масштаб по оси X, значит по оси Y делений меньше,
@@ -127,6 +135,12 @@ public class GraphicsDisplay extends JPanel{
         Color oldColor = canvas.getColor();
         Paint oldPaint = canvas.getPaint();
         Font oldFont = canvas.getFont();
+        if (antiClockRotate) {
+            AffineTransform at = AffineTransform.getRotateInstance(-Math.PI/2, getSize().getWidth()/2, getSize().getHeight()/2);
+            at.concatenate(new AffineTransform(getSize().getHeight()/getSize().getWidth(), 0.0, 0.0, getSize().getWidth()/getSize().getHeight(),
+                    (getSize().getWidth()-getSize().getHeight())/2, (getSize().getHeight()-getSize().getWidth())/2));
+            canvas.setTransform(at);
+        }
 // Шаг 8 - В нужном порядке вызвать методы отображения элементов графика
 // Порядок вызова методов имеет значение, т.к. предыдущий рисунок будет затираться последующим
 // Первыми (если нужно) отрисовываются оси координат.
@@ -140,6 +154,7 @@ public class GraphicsDisplay extends JPanel{
         canvas.setPaint(oldPaint);
         canvas.setColor(oldColor);
         canvas.setStroke(oldStroke);
+
     }
     // Отрисовка графика по прочитанным координатам
     protected void paintGraphics(Graphics2D canvas) {
@@ -147,18 +162,25 @@ public class GraphicsDisplay extends JPanel{
       canvas.setStroke(graphicsStroke);
 // Выбрать цвет линии
         canvas.setColor(Color.RED);
+
 /* Будем рисовать линию графика как путь, состоящий из множества cегментов (GeneralPath)
 * Начало пути устанавливается в первую точку графика, после чего прямой соединяется со
 * следующими точками
 */
         GeneralPath graphics = new GeneralPath();
+        GeneralPath area = new GeneralPath();
+        boolean flag1=false;
         for (int i=0; i<graphicsData.length; i++) {
 // Преобразовать значения (x,y) в точку на экране point
             Point2D.Double point = xyToPoint(graphicsData[i][0], graphicsData[i][1]);
             if (i>0) {
 // Не первая итерация цикла - вести линию в точку point
                graphics.lineTo(point.getX(), point.getY());
-
+               if(point.getY()==0.0)
+                   flag1=true;
+               if (flag1) {
+                   area.lineTo(point.getX(), point.getY());
+               }
             } else {
 // Первая итерация цикла - установить начало пути в точку point
                 graphics.moveTo(point.getX(), point.getY());
@@ -166,6 +188,8 @@ public class GraphicsDisplay extends JPanel{
         }
 // Отобразить график
         canvas.draw(graphics);
+        canvas.setPaint(Color.BLUE);
+        canvas.fill(area);
     }
 
     // Отображение маркеров точек, по которым рисовался график
@@ -296,5 +320,14 @@ public class GraphicsDisplay extends JPanel{
         dest.setLocation(src.getX() + deltaX, src.getY() + deltaY);
         return dest;
 
+    }
+
+    public void setAntiClockRotate(boolean antiClockRotate) {
+        this.antiClockRotate = antiClockRotate;
+        repaint();
+    }
+
+    public boolean isAntiClockRotate() {
+        return antiClockRotate;
     }
 }

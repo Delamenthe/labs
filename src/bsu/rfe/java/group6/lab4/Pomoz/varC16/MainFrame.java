@@ -18,7 +18,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-
+import javax.swing.JMenuItem;
 @SuppressWarnings("serial")
 
 public class MainFrame  extends JFrame {
@@ -30,6 +30,7 @@ public class MainFrame  extends JFrame {
     // Пункты меню
     private JCheckBoxMenuItem showAxisMenuItem;
     private JCheckBoxMenuItem showMarkersMenuItem;
+    private JMenuItem shapeRotateAntiClockItem;
     // Компонент-отображатель графика
     private GraphicsDisplay display = new GraphicsDisplay();
     // Флаг, указывающий на загруженность данных графика
@@ -95,7 +96,22 @@ public void actionPerformed(ActionEvent event) {
         graphicsMenu.addMenuListener(new GraphicsMenuListener());
 // Установить GraphicsDisplay в цент граничной компоновки
         getContentPane().add(display, BorderLayout.CENTER);
+
+        Action rotatesShapeAntiClockAction = new AbstractAction("Поворот графика на 90 градусов") {
+            public void actionPerformed(ActionEvent e) {
+                if(display.isAntiClockRotate())
+                    display.setAntiClockRotate(false);
+                else
+                    display.setAntiClockRotate(true);
+            }
+        };
+        shapeRotateAntiClockItem = new JCheckBoxMenuItem(rotatesShapeAntiClockAction);
+        graphicsMenu.add(shapeRotateAntiClockItem);
+        shapeRotateAntiClockItem.setEnabled(false);
+        graphicsMenu.addSeparator();
+
         }
+
 // Считывание данных графика из существующего файла
 protected void openGraphics(File selectedFile) {
         try {
@@ -157,6 +173,7 @@ private class GraphicsMenuListener implements MenuListener {
 // Доступность или недоступность элементов меню "График" определяется загруженностью данных
         showAxisMenuItem.setEnabled(fileLoaded);
         showMarkersMenuItem.setEnabled(fileLoaded);
+        shapeRotateAntiClockItem.setEnabled(fileLoaded);
     }
     // Обработчик, вызываемый после того, как меню исчезло с экрана
     public void menuDeselected(MenuEvent e) {
