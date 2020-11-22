@@ -13,10 +13,10 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 import javax.swing.JPanel;
-
 
 @SuppressWarnings("serial")
 public class GraphicsDisplay extends JPanel{
@@ -149,12 +149,12 @@ public class GraphicsDisplay extends JPanel{
         paintGraphics(canvas);
 // Затем (если нужно) отображаются маркеры точек, по которым строился график.
         if (showMarkers) paintMarkers(canvas);
+        findCloseAreas(canvas);
 // Шаг 9 - Восстановить старые настройки холста
         canvas.setFont(oldFont);
         canvas.setPaint(oldPaint);
         canvas.setColor(oldColor);
         canvas.setStroke(oldStroke);
-
     }
     // Отрисовка графика по прочитанным координатам
     protected void paintGraphics(Graphics2D canvas) {
@@ -168,19 +168,13 @@ public class GraphicsDisplay extends JPanel{
 * следующими точками
 */
         GeneralPath graphics = new GeneralPath();
-        GeneralPath area = new GeneralPath();
-        boolean flag1=false;
+
         for (int i=0; i<graphicsData.length; i++) {
 // Преобразовать значения (x,y) в точку на экране point
             Point2D.Double point = xyToPoint(graphicsData[i][0], graphicsData[i][1]);
             if (i>0) {
 // Не первая итерация цикла - вести линию в точку point
                graphics.lineTo(point.getX(), point.getY());
-               if(point.getY()==0.0)
-                   flag1=true;
-               if (flag1) {
-                   area.lineTo(point.getX(), point.getY());
-               }
             } else {
 // Первая итерация цикла - установить начало пути в точку point
                 graphics.moveTo(point.getX(), point.getY());
@@ -188,10 +182,75 @@ public class GraphicsDisplay extends JPanel{
         }
 // Отобразить график
         canvas.draw(graphics);
-        canvas.setPaint(Color.BLUE);
-        canvas.fill(area);
     }
+    protected void findCloseAreas(Graphics2D canvas) {
+        int k = 0;
+        double s=0, minX, maxX, maxY=0, minY=0;
+        Double point[] = new Double[2];
+        Double nextPoint[] = new Double[2];
+        for (int i = 0; i < graphicsData.length - 1; i++) {
+            point[0] = graphicsData[i][0];
+            point[1] = graphicsData[i][1];
+            nextPoint[0] = graphicsData[i + 1][0];
+            nextPoint[1] = graphicsData[i + 1][1];
+            if (point[1] * nextPoint[1] <= 0)
+                k++;
+        }
+        if (k > 1) {
+            Double x[] = new Double[graphicsData.length];
+            Double y[] = new Double[graphicsData.length];
+            for (int i = 0; i < graphicsData.length; i++) {
+                x[i] = graphicsData[i][0];
+                y[i] = graphicsData[i][1];
+            }
+            for (int i = 0; i < graphicsData.length-2; i++) {
+                if (y[i] * y[i + 1] <= 0) {
+                    GeneralPath path = new GeneralPath();
+                    Point2D p;
+                    if(x[i]==0&&y[i]==0)
+                        p = xyToPoint(0, 0);
+                    else
+                    p = xyToPoint((x[i+1]+x[i])/2, 0);
+                    Point2D np = xyToPoint(x[i + 1], y[i + 1]);
+                    path.moveTo(p.getX(), p.getY());
+                    path.lineTo(np.getX(), np.getY());
+                    s+=Math.abs(x[i+1]-x[i])*Math.abs(y[1+i])/2;
+                    minX=(np.getX()+p.getX())/2;
+                    maxY=(p.getY());
+                    do {
+                        i++;
+                        if(y[i] * y[i + 1] <= 0)
+                            break;
+                        Point2D P = xyToPoint(x[i], y[i]);
+                        np = xyToPoint(x[i + 1], y[i + 1]);
+                        if(np.getY()<P.getY())
+                            minY=np.getY();
+                        path.lineTo(np.getX(), np.getY());
+                        s+=Math.abs(y[i]+y[i+1])*Math.abs(x[i+1]-x[i])/2;
+                    } while (y[i] * y[i + 1] > 0 && i< graphicsData.length-2);
+                    if(y[i] * y[i + 1] > 0)
+                        continue;
+                    s+=Math.abs(y[i])*Math.abs((x[i+1]+x[i])/2-x[i])/2;
+                    np=xyToPoint((x[i+1]+x[i])/2,0);
+                    maxX=np.getX();
+                    path.lineTo(np.getX(), p.getY());
+                    path.closePath();
+                    canvas.setColor(Color.GREEN);
+                    canvas.fill(path);
+                    canvas.setColor(Color.BLACK);
+                    Font S =new Font("Serif",Font.PLAIN, 12);
+                    canvas.setFont(S);
+                    DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
+                    formatter.setMaximumFractionDigits(3);
+                    canvas.drawString(formatter.format(s), (float)(minX+(maxX-minX)/2-10),(float)(minY+Math.abs(maxY-minY)/2));
 
+                    if(y[i] * y[i + 1] < 0)
+                        i--;
+
+                }
+            }
+        }
+    }
     // Отображение маркеров точек, по которым рисовался график
     protected void paintMarkers(Graphics2D canvas) {
         canvas.setStroke(markerStroke);
@@ -242,7 +301,8 @@ public class GraphicsDisplay extends JPanel{
 // Она должна быть видна, если левая граница показываемой области (minX) <= 0.0,
 // а правая (maxX) >= 0.0
 // Сама ось - это линия между точками (0, maxY) и (0, minY)
-                    canvas.draw(new Line2D.Double(xyToPoint(0, maxY), xyToPoint(0, minY)));
+
+            canvas.draw(new Line2D.Double(xyToPoint(0, maxY), xyToPoint(0, minY)));
 // Стрелка оси Y
             GeneralPath arrow = new GeneralPath();
 // Установить начальную точку ломаной точно на верхний конец оси Y

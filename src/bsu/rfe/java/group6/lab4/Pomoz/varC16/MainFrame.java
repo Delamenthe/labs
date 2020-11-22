@@ -70,23 +70,23 @@ fileMenu.add(openGraphicsAction);
 menuBar.add(graphicsMenu);
     // Создать действие для реакции на активацию элемента "Показывать оси координат"
     Action showAxisAction = new AbstractAction("Показывать оси координат") {
-    public void actionPerformed(ActionEvent event) {
+        public void actionPerformed(ActionEvent event) {
 // свойство showAxis класса GraphicsDisplay истина, если элемент меню
 // showAxisMenuItem отмечен флажком, и ложь - в противном случае
-        display.setShowAxis(showAxisMenuItem.isSelected());
-    }
-};
-showAxisMenuItem = new JCheckBoxMenuItem(showAxisAction);
+            display.setShowAxis(showAxisMenuItem.isSelected());
+        }
+    };
+        showAxisMenuItem = new JCheckBoxMenuItem(showAxisAction);
 // Добавить соответствующий элемент в меню
         graphicsMenu.add(showAxisMenuItem);
 // Элемент по умолчанию включен (отмечен флажком)
         showAxisMenuItem.setSelected(true);
 // Повторить действия для элемента "Показывать маркеры точек"
         Action showMarkersAction = new AbstractAction("Показывать маркеры точек") {
-public void actionPerformed(ActionEvent event) {
+            public void actionPerformed(ActionEvent event) {
 // по аналогии с showAxisMenuItem
-        display.setShowMarkers(showMarkersMenuItem.isSelected());
-        }
+                display.setShowMarkers(showMarkersMenuItem.isSelected());
+            }
         };
         showMarkersMenuItem = new JCheckBoxMenuItem(showMarkersAction);
         graphicsMenu.add(showMarkersMenuItem);
