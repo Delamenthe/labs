@@ -7,6 +7,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Stroke;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
@@ -15,11 +18,11 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-
 import javax.swing.JPanel;
 
+
 @SuppressWarnings("serial")
-public class GraphicsDisplay extends JPanel{
+public class GraphicsDisplay extends JPanel implements MouseMotionListener, MouseListener{
     // Список координат точек для построения графика
     private Double[][] graphicsData;
     // Флаговые переменные, задающие правила отображения графика
@@ -34,18 +37,22 @@ public class GraphicsDisplay extends JPanel{
     // Используемый масштаб отображения
     private double scale;
     // Различные стили черчения линий
-    private BasicStroke graphicsStroke;
-    private BasicStroke axisStroke;
-    private BasicStroke markerStroke;
+    final private BasicStroke graphicsStroke;
+    final private BasicStroke axisStroke;
+    final private BasicStroke markerStroke;
     // Различные шрифты отображения надписей
-    private Font axisFont;
+    final private Font axisFont;
+    final private Font cursor;
+
+    // координаты курсора мыши
+    int mouseX = 0, mouseY = 0;
     public GraphicsDisplay() {
 // Цвет заднего фона области отображения - белый
         setBackground(Color.WHITE);
 // Сконструировать необходимые объекты, используемые в рисовании
 // Перо для рисования графика
         graphicsStroke = new BasicStroke(2.0f, BasicStroke.CAP_BUTT,
-                BasicStroke.JOIN_ROUND, 10.0f,new float[] {8,3}, 0.0f);
+                BasicStroke.JOIN_ROUND, 10.0f, new float[]{8, 3}, 0.0f);
 // Перо для рисования осей координат
         axisStroke = new BasicStroke(2.0f, BasicStroke.CAP_BUTT,
                 BasicStroke.JOIN_MITER, 10.0f, null, 0.0f);
@@ -54,27 +61,29 @@ public class GraphicsDisplay extends JPanel{
                 BasicStroke.JOIN_MITER, 10.0f, null, 0.0f);
 // Шрифт для подписей осей координат
         axisFont = new Font("Serif", Font.BOLD, 36);
+        cursor = new Font("Serif",Font.PLAIN,14);
+
+        this.addMouseListener(this);
+        this.addMouseMotionListener(this);
     }
-    // Данный метод вызывается из обработчика элемента меню "Открыть файл с графиком"
-    // главного окна приложения в случае успешной загрузки данных
+
     public void showGraphics(Double[][] graphicsData) {
 // Сохранить массив точек во внутреннем поле класса
         this.graphicsData = graphicsData;
 // Запросить перерисовку компонента, т.е. неявно вызвать paintComponent()
         repaint();
     }
-    // Методы-модификаторы для изменения параметров отображения графика
-// Изменение любого параметра приводит к перерисовке области
+
     public void setShowAxis(boolean showAxis) {
         this.showAxis = showAxis;
         repaint();
     }
+
     public void setShowMarkers(boolean showMarkers) {
         this.showMarkers = showMarkers;
         repaint();
     }
 
-    // Метод отображения всего компонента, содержащего график
     public void paintComponent(Graphics g) {
         /* Шаг 1 - Вызвать метод предка для заливки области цветом заднего фона
          * Эта функциональность - единственное, что осталось в наследство от
@@ -82,20 +91,20 @@ public class GraphicsDisplay extends JPanel{
          */
         super.paintComponent(g);
 // Шаг 2 - Если данные графика не загружены (при показе компонента при запуске программы) - ничего не делать
-        if (graphicsData==null || graphicsData.length==0) return;
+        if (graphicsData == null || graphicsData.length == 0) return;
 // Шаг 3 - Определить минимальное и максимальное значения для координат X и Y
 // Это необходимо для определения области пространства, подлежащей отображению
 // Еѐ верхний левый угол это (minX, maxY) - правый нижний это (maxX, minY)
         minX = graphicsData[0][0];
-        maxX = graphicsData[graphicsData.length-1][0];
+        maxX = graphicsData[graphicsData.length - 1][0];
         minY = graphicsData[0][1];
         maxY = minY;
 // Найти минимальное и максимальное значение функции
-        for (int i = 1; i<graphicsData.length; i++) {
-            if (graphicsData[i][1]<minY) {
+        for (int i = 1; i < graphicsData.length; i++) {
+            if (graphicsData[i][1] < minY) {
                 minY = graphicsData[i][1];
             }
-            if (graphicsData[i][1]>maxY) {
+            if (graphicsData[i][1] > maxY) {
                 maxY = graphicsData[i][1];
             }
         }
@@ -111,7 +120,7 @@ public class GraphicsDisplay extends JPanel{
         scale = Math.min(scaleX, scaleY);
 
 // Шаг 6 - корректировка границ отображаемой области согласно выбранному масштабу
-        if (scale==scaleX) {
+        if (scale == scaleX) {
             /* Если за основу был взят масштаб по оси X, значит по оси Y делений меньше,
              * т.е. подлежащий визуализации диапазон по Y будет меньше высоты окна.
              * Значит необходимо добавить делений, сделаем это так:
@@ -119,13 +128,13 @@ public class GraphicsDisplay extends JPanel{
              * 2) Вычтем из этого сколько делений требовалось изначально
              * 3) Набросим по половине недостающего расстояния на maxY и minY
              */
-            double yIncrement = (getSize().getHeight()/scale - (maxY - minY))/2;
+            double yIncrement = (getSize().getHeight() / scale - (maxY - minY)) / 2;
             maxY += yIncrement;
             minY -= yIncrement;
         }
-        if (scale==scaleY) {
+        if (scale == scaleY) {
 // Если за основу был взят масштаб по оси Y, действовать по аналогии
-            double xIncrement = (getSize().getWidth()/scale - (maxX - minX))/2;
+            double xIncrement = (getSize().getWidth() / scale - (maxX - minX)) / 2;
             maxX += xIncrement;
             minX -= xIncrement;
         }
@@ -136,9 +145,9 @@ public class GraphicsDisplay extends JPanel{
         Paint oldPaint = canvas.getPaint();
         Font oldFont = canvas.getFont();
         if (antiClockRotate) {
-            AffineTransform at = AffineTransform.getRotateInstance(-Math.PI/2, getSize().getWidth()/2, getSize().getHeight()/2);
-            at.concatenate(new AffineTransform(getSize().getHeight()/getSize().getWidth(), 0.0, 0.0, getSize().getWidth()/getSize().getHeight(),
-                    (getSize().getWidth()-getSize().getHeight())/2, (getSize().getHeight()-getSize().getWidth())/2));
+            AffineTransform at = AffineTransform.getRotateInstance(-Math.PI / 2, getSize().getWidth() / 2, getSize().getHeight() / 2);
+            at.concatenate(new AffineTransform(getSize().getHeight() / getSize().getWidth(), 0.0, 0.0, getSize().getWidth() / getSize().getHeight(),
+                    (getSize().getWidth() - getSize().getHeight()) / 2, (getSize().getHeight() - getSize().getWidth()) / 2));
             canvas.setTransform(at);
         }
 // Шаг 8 - В нужном порядке вызвать методы отображения элементов графика
@@ -150,13 +159,14 @@ public class GraphicsDisplay extends JPanel{
 // Затем (если нужно) отображаются маркеры точек, по которым строился график.
         if (showMarkers) paintMarkers(canvas);
         findCloseAreas(canvas);
+        MyMouse(canvas);
 // Шаг 9 - Восстановить старые настройки холста
         canvas.setFont(oldFont);
         canvas.setPaint(oldPaint);
         canvas.setColor(oldColor);
         canvas.setStroke(oldStroke);
     }
-    // Отрисовка графика по прочитанным координатам
+
     protected void paintGraphics(Graphics2D canvas) {
 // Выбрать линию для рисования графика
         canvas.setStroke(graphicsStroke);
@@ -169,10 +179,10 @@ public class GraphicsDisplay extends JPanel{
          */
         GeneralPath graphics = new GeneralPath();
 
-        for (int i=0; i<graphicsData.length; i++) {
+        for (int i = 0; i < graphicsData.length; i++) {
 // Преобразовать значения (x,y) в точку на экране point
             Point2D.Double point = xyToPoint(graphicsData[i][0], graphicsData[i][1]);
-            if (i>0) {
+            if (i > 0) {
 // Не первая итерация цикла - вести линию в точку point
                 graphics.lineTo(point.getX(), point.getY());
             } else {
@@ -183,11 +193,12 @@ public class GraphicsDisplay extends JPanel{
 // Отобразить график
         canvas.draw(graphics);
     }
+
     protected void findCloseAreas(Graphics2D canvas) {
         int k = 0;
-        double s=0, minX, maxX, maxY=0, minY=0;
-        Double point[] = new Double[2];
-        Double nextPoint[] = new Double[2];
+        double s = 0, minX, maxX, maxY, minY = 0;
+        Double[] point = new Double[2];
+        Double[] nextPoint = new Double[2];
         for (int i = 0; i < graphicsData.length - 1; i++) {
             point[0] = graphicsData[i][0];
             point[1] = graphicsData[i][1];
@@ -197,79 +208,79 @@ public class GraphicsDisplay extends JPanel{
                 k++;
         }
         if (k > 1) {
-            Double x[] = new Double[graphicsData.length];
-            Double y[] = new Double[graphicsData.length];
+            Double[] x  = new Double[graphicsData.length];
+            Double[] y = new Double[graphicsData.length];
             for (int i = 0; i < graphicsData.length; i++) {
                 x[i] = graphicsData[i][0];
                 y[i] = graphicsData[i][1];
             }
-            for (int i = 0; i < graphicsData.length-2; i++) {
+            for (int i = 0; i < graphicsData.length - 2; i++) {
                 if (y[i] * y[i + 1] <= 0) {
                     GeneralPath path = new GeneralPath();
                     Point2D p;
-                    if(x[i]==0&&y[i]==0)
+                    if (x[i] == 0 && y[i] == 0)
                         p = xyToPoint(0, 0);
                     else
-                        p = xyToPoint((x[i+1]+x[i])/2, 0);
+                        p = xyToPoint((x[i + 1] + x[i]) / 2, 0);
                     Point2D np = xyToPoint(x[i + 1], y[i + 1]);
                     path.moveTo(p.getX(), p.getY());
                     path.lineTo(np.getX(), np.getY());
-                    s+=Math.abs(x[i+1]-x[i])*Math.abs(y[1+i])/2;
-                    minX=(np.getX()+p.getX())/2;
-                    maxY=(p.getY());
+                    s += Math.abs(x[i + 1] - x[i]) * Math.abs(y[1 + i]) / 2;
+                    minX = (np.getX() + p.getX()) / 2;
+                    maxY = (p.getY());
                     do {
                         i++;
-                        if(y[i] * y[i + 1] <= 0)
+                        if (y[i] * y[i + 1] <= 0)
                             break;
                         Point2D P = xyToPoint(x[i], y[i]);
                         np = xyToPoint(x[i + 1], y[i + 1]);
-                        if(np.getY()<P.getY())
-                            minY=np.getY();
+                        if (np.getY() < P.getY())
+                            minY = np.getY();
                         path.lineTo(np.getX(), np.getY());
-                        s+=Math.abs(y[i]+y[i+1])*Math.abs(x[i+1]-x[i])/2;
-                    } while (y[i] * y[i + 1] > 0 && i< graphicsData.length-2);
-                    if(y[i] * y[i + 1] > 0)
+                        s += Math.abs(y[i] + y[i + 1]) * Math.abs(x[i + 1] - x[i]) / 2;
+                    } while (y[i] * y[i + 1] > 0 && i < graphicsData.length - 2);
+                    if (y[i] * y[i + 1] > 0)
                         continue;
-                    s+=Math.abs(y[i])*Math.abs((x[i+1]+x[i])/2-x[i])/2;
-                    np=xyToPoint((x[i+1]+x[i])/2,0);
-                    maxX=np.getX();
+                    s += Math.abs(y[i]) * Math.abs((x[i + 1] + x[i]) / 2 - x[i]) / 2;
+                    np = xyToPoint((x[i + 1] + x[i]) / 2, 0);
+                    maxX = np.getX();
                     path.lineTo(np.getX(), p.getY());
                     path.closePath();
                     canvas.setColor(Color.GREEN);
                     canvas.fill(path);
                     canvas.setColor(Color.BLACK);
-                    Font S =new Font("Serif",Font.PLAIN, 12);
+                    Font S = new Font("Serif", Font.PLAIN, 12);
                     canvas.setFont(S);
                     DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
                     formatter.setMaximumFractionDigits(3);
-                    canvas.drawString(formatter.format(s), (float)(minX+(maxX-minX)/2-10),(float)(minY+Math.abs(maxY-minY)/2));
+                    canvas.drawString(formatter.format(s), (float) (minX + (maxX - minX) / 2 - 10), (float) (minY + Math.abs(maxY - minY) / 2));
 
-                    if(y[i] * y[i + 1] < 0)
+                    if (y[i] * y[i + 1] < 0)
                         i--;
 
                 }
             }
         }
     }
-    // Отображение маркеров точек, по которым рисовался график
+
     protected void paintMarkers(Graphics2D canvas) {
         canvas.setStroke(markerStroke);
         canvas.setColor(Color.RED);
-        for (Double[] point: graphicsData) {
-            double y=point[1];
-            while(Math.abs(y-Math.round(y))>0)
-                y*=10;
-            boolean flag=true;
-            double c1=y%10, c2;
-            y/=10;
-            while (Math.abs(y)>0){
-                c2=y%10;
-                y/=10;
-                if(c1<c2){
+        for (Double[] point : graphicsData) {
+            double y = point[1];
+            while (Math.abs(y - Math.round(y)) > 0)
+                y *= 10;
+            boolean flag = true;
+            double c1 = y % 10, c2;
+            y /= 10;
+            while (Math.abs(y) > 0) {
+                c2 = y % 10;
+                y /= 10;
+                if (c1 < c2) {
                     flag = false;
                     break;
                 }
-                c1=c2;
+                c1 = c2;
             }
             if (flag)
                 canvas.setColor(Color.BLUE);
@@ -277,14 +288,13 @@ public class GraphicsDisplay extends JPanel{
                 canvas.setColor(Color.RED);
 
             Point2D.Double center = xyToPoint(point[0], point[1]);
-            canvas.draw(new Line2D.Double(shiftPoint(center,-5,5),shiftPoint(center,5,-5)));
-            canvas.draw(new Line2D.Double(shiftPoint(center,5,5),shiftPoint(center,-5,-5)));
-            canvas.draw(new Line2D.Double(shiftPoint(center,0,5),shiftPoint(center,0,-5)));
-            canvas.draw(new Line2D.Double(shiftPoint(center,-5,0),shiftPoint(center,5,0)));
+            canvas.draw(new Line2D.Double(shiftPoint(center, -5, 5), shiftPoint(center, 5, -5)));
+            canvas.draw(new Line2D.Double(shiftPoint(center, 5, 5), shiftPoint(center, -5, -5)));
+            canvas.draw(new Line2D.Double(shiftPoint(center, 0, 5), shiftPoint(center, 0, -5)));
+            canvas.draw(new Line2D.Double(shiftPoint(center, -5, 0), shiftPoint(center, 5, 0)));
         }
     }
 
-    // Метод, обеспечивающий отображение осей координат
     protected void paintAxis(Graphics2D canvas) {
 // Установить особое начертание для осей
         canvas.setStroke(axisStroke);
@@ -297,7 +307,7 @@ public class GraphicsDisplay extends JPanel{
 // Создать объект контекста отображения текста - для получения характеристик устройства (экрана)
         FontRenderContext context = canvas.getFontRenderContext();
 // Определить, должна ли быть видна ось Y на графике
-        if (minX<=0.0 && maxX>=0.0) {
+        if (minX <= 0.0 && maxX >= 0.0) {
 // Она должна быть видна, если левая граница показываемой области (minX) <= 0.0,
 // а правая (maxX) >= 0.0
 // Сама ось - это линия между точками (0, maxY) и (0, minY)
@@ -309,10 +319,10 @@ public class GraphicsDisplay extends JPanel{
             Point2D.Double lineEnd = xyToPoint(0, maxY);
             arrow.moveTo(lineEnd.getX(), lineEnd.getY());
 // Вести левый "скат" стрелки в точку с относительными координатами (5,20)
-            arrow.lineTo(arrow.getCurrentPoint().getX()+5,
-                    arrow.getCurrentPoint().getY()+20);
+            arrow.lineTo(arrow.getCurrentPoint().getX() + 5,
+                    arrow.getCurrentPoint().getY() + 20);
 // Вести нижнюю часть стрелки в точку с относительными координатами (-10, 0)
-            arrow.lineTo(arrow.getCurrentPoint().getX()-10,
+            arrow.lineTo(arrow.getCurrentPoint().getX() - 10,
                     arrow.getCurrentPoint().getY());
 // Замкнуть треугольник стрелки
             arrow.closePath();
@@ -323,11 +333,11 @@ public class GraphicsDisplay extends JPanel{
             Rectangle2D bounds = axisFont.getStringBounds("y", context);
             Point2D.Double labelPos = xyToPoint(0, maxY);
 // Вывести надпись в точке с вычисленными координатами
-            canvas.drawString("y", (float)labelPos.getX() + 10,
-                    (float)(labelPos.getY() - bounds.getY()));
+            canvas.drawString("y", (float) labelPos.getX() + 10,
+                    (float) (labelPos.getY() - bounds.getY()));
         }
 // Определить, должна ли быть видна ось X на графике
-        if (minY<=0.0 && maxY>=0.0) {
+        if (minY <= 0.0 && maxY >= 0.0) {
 // Она должна быть видна, если верхняя граница показываемой области (maxX) >= 0.0,
 // а нижняя (minY) <= 0.0
             canvas.draw(new Line2D.Double(xyToPoint(minX, 0),
@@ -338,11 +348,11 @@ public class GraphicsDisplay extends JPanel{
             Point2D.Double lineEnd = xyToPoint(maxX, 0);
             arrow.moveTo(lineEnd.getX(), lineEnd.getY());
 // Вести верхний "скат" стрелки в точку с относительными координатами (-20,-5)
-            arrow.lineTo(arrow.getCurrentPoint().getX()-20,
-                    arrow.getCurrentPoint().getY()-5);
+            arrow.lineTo(arrow.getCurrentPoint().getX() - 20,
+                    arrow.getCurrentPoint().getY() - 5);
 // Вести левую часть стрелки в точку с относительными координатами (0, 10)
             arrow.lineTo(arrow.getCurrentPoint().getX(),
-                    arrow.getCurrentPoint().getY()+10);
+                    arrow.getCurrentPoint().getY() + 10);
 // Замкнуть треугольник стрелки
             arrow.closePath();
             canvas.draw(arrow); // Нарисовать стрелку
@@ -352,31 +362,21 @@ public class GraphicsDisplay extends JPanel{
             Rectangle2D bounds = axisFont.getStringBounds("x", context);
             Point2D.Double labelPos = xyToPoint(maxX, 0);
 // Вывести надпись в точке с вычисленными координатами
-            canvas.drawString("x", (float)(labelPos.getX() -
-                    bounds.getWidth() - 10), (float)(labelPos.getY() + bounds.getY()));
+            canvas.drawString("x", (float) (labelPos.getX() -
+                    bounds.getWidth() - 10), (float) (labelPos.getY() + bounds.getY()));
         }
     }
-    /* Метод-помощник, осуществляющий преобразование координат.
-     * Оно необходимо, т.к. верхнему левому углу холста с координатами
-     * (0.0, 0.0) соответствует точка графика с координатами (minX, maxY), где
-     * minX - это самое "левое" значение X, а
-     * maxY - самое "верхнее" значение Y.
-     */
+
     protected Point2D.Double xyToPoint(double x, double y) {
 // Вычисляем смещение X от самой левой точки (minX)
         double deltaX = x - minX;
 // Вычисляем смещение Y от точки верхней точки (maxY)
         double deltaY = maxY - y;
-        return new Point2D.Double(deltaX*scale, deltaY*scale);
+        return new Point2D.Double(deltaX * scale, deltaY * scale);
     }
-    /* Метод-помощник, возвращающий экземпляр класса Point2D.Double
-     * смещѐнный по отношению к исходному на deltaX, deltaY
-     * К сожалению, стандартного метода, выполняющего такую задачу, нет.
-     */
+
     protected Point2D.Double shiftPoint(Point2D.Double src, double deltaX, double deltaY) {
-// Инициализировать новый экземпляр точки
         Point2D.Double dest = new Point2D.Double();
-// Задать еѐ координаты как координаты существующей точки + заданные смещения
         dest.setLocation(src.getX() + deltaX, src.getY() + deltaY);
         return dest;
 
@@ -390,5 +390,47 @@ public class GraphicsDisplay extends JPanel{
     public boolean isAntiClockRotate() {
         return antiClockRotate;
     }
-}
 
+    public void mouseClicked(MouseEvent e) {
+
+    }
+
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    public void mouseExited(MouseEvent e) {
+
+    }
+
+    public void mouseDragged(MouseEvent e) {
+
+    }
+
+    public void mouseMoved(MouseEvent e) {
+        mouseX=e.getX();
+        mouseY=e.getY();
+        repaint();
+    }
+    public void MyMouse(Graphics2D canvas) {
+        canvas.setPaint(Color.BLACK);
+        canvas.setFont(cursor);
+        DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
+        formatter.setMaximumFractionDigits(3);
+       for (Double[] point: graphicsData) {
+            Point2D p = xyToPoint(point[0], point[1]);
+            if ((mouseY<=(int)p.getY()+5)&&(mouseY>=(int)p.getY()-5)&&((mouseX<=(int)p.getX()+5)&&(mouseX<=(int)p.getX()+5))) {
+                canvas.drawString("X=" + formatter.format(point[0]) + "; Y=" + formatter.format(point[1]), (float) mouseX, (float) mouseY);
+                repaint();
+            }
+        }
+    }
+}

@@ -19,9 +19,12 @@ import javax.swing.JOptionPane;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.JMenuItem;
+
+
+
 @SuppressWarnings("serial")
 
-public class MainFrame  extends JFrame {
+public class MainFrame  extends JFrame{
     // Начальные размеры окна приложения
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
@@ -35,6 +38,7 @@ public class MainFrame  extends JFrame {
     private GraphicsDisplay display = new GraphicsDisplay();
     // Флаг, указывающий на загруженность данных графика
     private boolean fileLoaded = false;
+
     public MainFrame() {
 // Вызов конструктора предка Frame
         super("Построение графиков функций на основе заранее подготовленных файлов");
@@ -166,6 +170,7 @@ Double.SIZE/8 байт;
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
+
     // Класс-слушатель событий, связанных с отображением меню
     private class GraphicsMenuListener implements MenuListener {
         // Обработчик, вызываемый перед показом меню
