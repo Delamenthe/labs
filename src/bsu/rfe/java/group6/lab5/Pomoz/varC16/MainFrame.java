@@ -31,11 +31,11 @@ public class MainFrame  extends JFrame{
     // Объект диалогового окна для выбора файлов
     private JFileChooser fileChooser = null;
     // Пункты меню
-    private JCheckBoxMenuItem showAxisMenuItem;
-    private JCheckBoxMenuItem showMarkersMenuItem;
-    private JMenuItem shapeRotateAntiClockItem;
+    final private JCheckBoxMenuItem showAxisMenuItem;
+    final private JCheckBoxMenuItem showMarkersMenuItem;
+    final private JMenuItem shapeRotateAntiClockItem;
     // Компонент-отображатель графика
-    private GraphicsDisplay display = new GraphicsDisplay();
+    final private GraphicsDisplay display = new GraphicsDisplay();
     // Флаг, указывающий на загруженность данных графика
     private boolean fileLoaded = false;
 
@@ -103,10 +103,7 @@ public class MainFrame  extends JFrame{
 
         Action rotatesShapeAntiClockAction = new AbstractAction("Поворот графика на 90 градусов") {
             public void actionPerformed(ActionEvent e) {
-                if(display.isAntiClockRotate())
-                    display.setAntiClockRotate(false);
-                else
-                    display.setAntiClockRotate(true);
+                display.setAntiClockRotate(!display.isAntiClockRotate());
             }
         };
         shapeRotateAntiClockItem = new JCheckBoxMenuItem(rotatesShapeAntiClockAction);
@@ -136,14 +133,14 @@ Double.SIZE/8 байт;
             int i = 0;
             while (in.available()>0) {
 // Первой из потока читается координата точки X
-                Double x = in.readDouble();
+                double x = in.readDouble();
 // Затем - значение графика Y в точке X
-                Double y = in.readDouble();
+                double y = in.readDouble();
 // Прочитанная пара координат добавляется в массив
                 graphicsData[i++] = new Double[] {x, y};
             }
 // Шаг 4 - Проверка, имеется ли в списке в результате чтения хотя бы одна пара координат
-            if (graphicsData!=null && graphicsData.length>0) {
+            if ( graphicsData.length>0) {
 // Да - установить флаг загруженности данных
                 fileLoaded = true;
 // Вызывать метод отображения графика
@@ -155,13 +152,10 @@ Double.SIZE/8 байт;
 // В случае исключительной ситуации типа "Файл не найден" показать сообщение об ошибке
             JOptionPane.showMessageDialog(MainFrame.this, "Указанный файл не найден",
                     "Ошибка загрузки данных", JOptionPane.WARNING_MESSAGE);
-            return;
         } catch (IOException ex) {
 // В случае ошибки ввода из файлового потока показать сообщение об ошибке
             JOptionPane.showMessageDialog(MainFrame.this, "Ошибка чтения координат точек из файла", "Ошибка загрузки данных",
                     JOptionPane.WARNING_MESSAGE);
-            return;
-
         }
     }
     public static void main(String[] args) {

@@ -29,23 +29,31 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     private boolean showAxis = true;
     private boolean showMarkers = true;
     private boolean antiClockRotate = false;
+    private boolean mousePressed = false;
+    private boolean mouseReleased = false;
+    private boolean zoom= false;
     // Границы диапазона пространства, подлежащего отображению
     private double minX;
     private double maxX;
     private double minY;
     private double maxY;
+    private double Xmin=0, Xmax=0, Ymin=0, Ymax=0;
     // Используемый масштаб отображения
     private double scale;
     // Различные стили черчения линий
     final private BasicStroke graphicsStroke;
     final private BasicStroke axisStroke;
     final private BasicStroke markerStroke;
+    final private BasicStroke rectStroke;
     // Различные шрифты отображения надписей
     final private Font axisFont;
     final private Font cursor;
 
     // координаты курсора мыши
     int mouseX = 0, mouseY = 0;
+    double mouseXto = 0, mouseYto = 0;
+    double InitialMouseX=0,  InitialMouseY=0;
+    double EndMouseX=0,  EndMouseY=0;
     public GraphicsDisplay() {
 // Цвет заднего фона области отображения - белый
         setBackground(Color.WHITE);
@@ -59,6 +67,9 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
 // Перо для рисования контуров маркеров
         markerStroke = new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
                 BasicStroke.JOIN_MITER, 10.0f, null, 0.0f);
+// Перо для рисования контуров прямоугольников
+        rectStroke = new BasicStroke(2.0f, BasicStroke.CAP_BUTT,
+                BasicStroke.JOIN_MITER, 10.0f, new float[]{10, 5}, 0.0f);
 // Шрифт для подписей осей координат
         axisFont = new Font("Serif", Font.BOLD, 36);
         cursor = new Font("Serif",Font.PLAIN,14);
@@ -85,60 +96,42 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     }
 
     public void paintComponent(Graphics g) {
-        /* Шаг 1 - Вызвать метод предка для заливки области цветом заднего фона
-         * Эта функциональность - единственное, что осталось в наследство от
-         * paintComponent класса JPanel
-         */
         super.paintComponent(g);
-// Шаг 2 - Если данные графика не загружены (при показе компонента при запуске программы) - ничего не делать
         if (graphicsData == null || graphicsData.length == 0) return;
-// Шаг 3 - Определить минимальное и максимальное значения для координат X и Y
-// Это необходимо для определения области пространства, подлежащей отображению
-// Еѐ верхний левый угол это (minX, maxY) - правый нижний это (maxX, minY)
-        minX = graphicsData[0][0];
-        maxX = graphicsData[graphicsData.length - 1][0];
-        minY = graphicsData[0][1];
-        maxY = minY;
-// Найти минимальное и максимальное значение функции
-        for (int i = 1; i < graphicsData.length; i++) {
-            if (graphicsData[i][1] < minY) {
-                minY = graphicsData[i][1];
+        if (!zoom){
+            minX = graphicsData[0][0];
+            maxX = graphicsData[graphicsData.length - 1][0];
+            minY = graphicsData[0][1];
+            maxY = minY;
+            for (int i = 1; i < graphicsData.length; i++) {
+                if (graphicsData[i][1] < minY) {
+                    minY = graphicsData[i][1];
+                }
+                if (graphicsData[i][1] > maxY) {
+                    maxY = graphicsData[i][1];
+                }
             }
-            if (graphicsData[i][1] > maxY) {
-                maxY = graphicsData[i][1];
-            }
-        }
-/* Шаг 4 - Определить (исходя из размеров окна) масштабы по осям X
-и Y - сколько пикселов
-* приходится на единицу длины по X и по Y
-*/
+        }else{
+            minX=Xmin;
+            maxX=Xmax;
+            minY=Ymin;
+            maxY=Ymax;}
+
+
         double scaleX = getSize().getWidth() / (maxX - minX);
         double scaleY = getSize().getHeight() / (maxY - minY);
 
-// Шаг 5 - Чтобы изображение было неискажѐнным - масштаб должен быть одинаков
-// Выбираем за основу минимальный
         scale = Math.min(scaleX, scaleY);
-
-// Шаг 6 - корректировка границ отображаемой области согласно выбранному масштабу
         if (scale == scaleX) {
-            /* Если за основу был взят масштаб по оси X, значит по оси Y делений меньше,
-             * т.е. подлежащий визуализации диапазон по Y будет меньше высоты окна.
-             * Значит необходимо добавить делений, сделаем это так:
-             * 1) Вычислим, сколько делений влезет по Y при выбранном масштабе - getSize().getHeight()/scale
-             * 2) Вычтем из этого сколько делений требовалось изначально
-             * 3) Набросим по половине недостающего расстояния на maxY и minY
-             */
             double yIncrement = (getSize().getHeight() / scale - (maxY - minY)) / 2;
             maxY += yIncrement;
             minY -= yIncrement;
         }
         if (scale == scaleY) {
-// Если за основу был взят масштаб по оси Y, действовать по аналогии
             double xIncrement = (getSize().getWidth() / scale - (maxX - minX)) / 2;
             maxX += xIncrement;
             minX -= xIncrement;
         }
-// Шаг 7 - Сохранить текущие настройки холста
         Graphics2D canvas = (Graphics2D) g;
         Stroke oldStroke = canvas.getStroke();
         Color oldColor = canvas.getColor();
@@ -150,17 +143,13 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
                     (getSize().getWidth() - getSize().getHeight()) / 2, (getSize().getHeight() - getSize().getWidth()) / 2));
             canvas.setTransform(at);
         }
-// Шаг 8 - В нужном порядке вызвать методы отображения элементов графика
-// Порядок вызова методов имеет значение, т.к. предыдущий рисунок будет затираться последующим
-// Первыми (если нужно) отрисовываются оси координат.
         if (showAxis) paintAxis(canvas);
-// Затем отображается сам график
         paintGraphics(canvas);
-// Затем (если нужно) отображаются маркеры точек, по которым строился график.
         if (showMarkers) paintMarkers(canvas);
         findCloseAreas(canvas);
-        MyMouse(canvas);
-// Шаг 9 - Восстановить старые настройки холста
+        ShowPointsCoordinates(canvas);
+        Scaling(canvas);
+
         canvas.setFont(oldFont);
         canvas.setPaint(oldPaint);
         canvas.setColor(oldColor);
@@ -396,11 +385,17 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     }
 
     public void mousePressed(MouseEvent e) {
-
+        InitialMouseX=e.getX();
+        InitialMouseY=e.getY();
+        mousePressed=true;
+        repaint();
     }
 
     public void mouseReleased(MouseEvent e) {
-
+        EndMouseX=e.getX();
+        EndMouseY=e.getY();
+        mouseReleased=true;
+        repaint();
     }
 
     public void mouseEntered(MouseEvent e) {
@@ -412,7 +407,8 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     }
 
     public void mouseDragged(MouseEvent e) {
-
+        mouseXto=e.getX();
+        mouseYto=e.getY();
     }
 
     public void mouseMoved(MouseEvent e) {
@@ -420,17 +416,49 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
         mouseY=e.getY();
         repaint();
     }
-    public void MyMouse(Graphics2D canvas) {
+    public void ShowPointsCoordinates(Graphics2D canvas) {
         canvas.setPaint(Color.BLACK);
         canvas.setFont(cursor);
         DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
         formatter.setMaximumFractionDigits(3);
        for (Double[] point: graphicsData) {
             Point2D p = xyToPoint(point[0], point[1]);
-            if ((mouseY<=(int)p.getY()+5)&&(mouseY>=(int)p.getY()-5)&&((mouseX<=(int)p.getX()+5)&&(mouseX<=(int)p.getX()+5))) {
+            if ((mouseY<=(int)p.getY()+5)&&(mouseY>=(int)p.getY()-5)&&((mouseX<=(int)p.getX()+5)&&(mouseX>=(int)p.getX()-5))) {
                 canvas.drawString("X=" + formatter.format(point[0]) + "; Y=" + formatter.format(point[1]), (float) mouseX, (float) mouseY);
                 repaint();
             }
+        }
+    }
+    public void Scaling(Graphics2D canvas) {
+        canvas.setStroke(rectStroke);
+        canvas.setColor(Color.BLUE);
+        if (mousePressed) {
+            repaint();
+            canvas.drawRect((int) InitialMouseX, (int) InitialMouseY, (int) (mouseXto - InitialMouseX), (int) (mouseYto - InitialMouseY));
+        }
+        if (mouseReleased) {
+            zoom = true;
+            boolean flag = false;
+            for (Double[] graphicsDatum : graphicsData) {
+                Point2D.Double pos = xyToPoint(graphicsDatum[0], graphicsDatum[1]);
+                if (pos.getX() >= InitialMouseX && pos.getY() >= InitialMouseY && !flag && pos.getX() <= EndMouseX && pos.getY() <= EndMouseY) {
+                    Xmin = graphicsDatum[0];
+                    Xmax = graphicsDatum[0];
+                    Ymin = graphicsDatum[1];
+                    Ymax = graphicsDatum[1];
+                    flag = true;
+                    continue;
+                }
+                if (pos.getX() >= InitialMouseX && pos.getY() >= InitialMouseY && flag && pos.getX() <= EndMouseX && pos.getY() <= EndMouseY) {
+                    Xmax = graphicsDatum[0];
+                    if (Ymin > graphicsDatum[1])
+                        Ymin = graphicsDatum[1];
+                    if (Ymax < graphicsDatum[1])
+                        Ymax = graphicsDatum[1];
+                }
+            }
+            mouseReleased=false;
+            mousePressed=false;
         }
     }
 }
