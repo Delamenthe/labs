@@ -32,12 +32,15 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     private boolean mousePressed = false;
     private boolean mouseReleased = false;
     private boolean zoom= false;
+    private boolean restore=false;
     // Границы диапазона пространства, подлежащего отображению
+    int k=0;
     private double minX;
     private double maxX;
     private double minY;
     private double maxY;
-    private double Xmin=0, Xmax=0, Ymin=0, Ymax=0;
+    Double[][] max=new Double[10][2];
+    Double[][] min=new Double[10][2];
     // Используемый масштаб отображения
     private double scale;
     // Различные стили черчения линий
@@ -48,7 +51,6 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     // Различные шрифты отображения надписей
     final private Font axisFont;
     final private Font cursor;
-
     // координаты курсора мыши
     int mouseX = 0, mouseY = 0;
     double mouseXto = 0, mouseYto = 0;
@@ -111,11 +113,17 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
                     maxY = graphicsData[i][1];
                 }
             }
-        }else{
-            minX=Xmin;
-            maxX=Xmax;
-            minY=Ymin;
-            maxY=Ymax;}
+            min[0][1]=minY;
+            min[0][0]=minX;
+            max[0][1]=maxY;
+            max[0][0]=maxX;
+        }else {
+            minX = min[k][0];
+            maxX = max[k][0];
+            minY = min[k][1];
+            maxY = max[k][1];
+            restore=false;
+        }
 
 
         double scaleX = getSize().getWidth() / (maxX - minX);
@@ -149,7 +157,6 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
         findCloseAreas(canvas);
         ShowPointsCoordinates(canvas);
         Scaling(canvas);
-
         canvas.setFont(oldFont);
         canvas.setPaint(oldPaint);
         canvas.setColor(oldColor);
@@ -381,21 +388,30 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     }
 
     public void mouseClicked(MouseEvent e) {
+        if(e.getButton()==3) {
+            restore=true;
+            k--;
+            repaint();
 
+        }
     }
 
     public void mousePressed(MouseEvent e) {
-        InitialMouseX=e.getX();
-        InitialMouseY=e.getY();
-        mousePressed=true;
-        repaint();
+        if(e.getButton()==1) {
+            InitialMouseX = e.getX();
+            InitialMouseY = e.getY();
+            mousePressed = true;
+            repaint();
+        }
     }
 
     public void mouseReleased(MouseEvent e) {
-        EndMouseX=e.getX();
-        EndMouseY=e.getY();
-        mouseReleased=true;
-        repaint();
+        if(e.getButton()==1) {
+            EndMouseX = e.getX();
+            EndMouseY = e.getY();
+            mouseReleased = true;
+            repaint();
+        }
     }
 
     public void mouseEntered(MouseEvent e) {
@@ -416,6 +432,7 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
         mouseY=e.getY();
         repaint();
     }
+
     public void ShowPointsCoordinates(Graphics2D canvas) {
         canvas.setPaint(Color.BLACK);
         canvas.setFont(cursor);
@@ -429,6 +446,7 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
             }
         }
     }
+
     public void Scaling(Graphics2D canvas) {
         canvas.setStroke(rectStroke);
         canvas.setColor(Color.BLUE);
@@ -437,24 +455,25 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
             canvas.drawRect((int) InitialMouseX, (int) InitialMouseY, (int) (mouseXto - InitialMouseX), (int) (mouseYto - InitialMouseY));
         }
         if (mouseReleased) {
+            k++;
             zoom = true;
             boolean flag = false;
-            for (Double[] graphicsDatum : graphicsData) {
-                Point2D.Double pos = xyToPoint(graphicsDatum[0], graphicsDatum[1]);
+            for (Double[] point : graphicsData) {
+                Point2D.Double pos = xyToPoint(point[0], point[1]);
                 if (pos.getX() >= InitialMouseX && pos.getY() >= InitialMouseY && !flag && pos.getX() <= EndMouseX && pos.getY() <= EndMouseY) {
-                    Xmin = graphicsDatum[0];
-                    Xmax = graphicsDatum[0];
-                    Ymin = graphicsDatum[1];
-                    Ymax = graphicsDatum[1];
+                    min[k][0] = point[0];
+                    max[k][0] = point[0];
+                    min[k][1] = point[1];
+                    max[k][1] = point[1];
                     flag = true;
                     continue;
                 }
                 if (pos.getX() >= InitialMouseX && pos.getY() >= InitialMouseY && flag && pos.getX() <= EndMouseX && pos.getY() <= EndMouseY) {
-                    Xmax = graphicsDatum[0];
-                    if (Ymin > graphicsDatum[1])
-                        Ymin = graphicsDatum[1];
-                    if (Ymax < graphicsDatum[1])
-                        Ymax = graphicsDatum[1];
+                    max[k][0] = point[0];
+                    if (min[k][1] > point[1])
+                        min[k][1] = point[1];
+                       if (max[k][1] < point[1])
+                           max[k][1] = point[1];
                 }
             }
             mouseReleased=false;
