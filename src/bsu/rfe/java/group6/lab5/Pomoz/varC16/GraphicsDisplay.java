@@ -1,5 +1,6 @@
 package bsu.rfe.java.group6.lab5.Pomoz.varC16;
 
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -11,51 +12,52 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.font.FontRenderContext;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import javax.swing.JPanel;
 
 
 @SuppressWarnings("serial")
-public class GraphicsDisplay extends JPanel implements MouseMotionListener, MouseListener{
-    // Список координат точек для построения графика
+public class GraphicsDisplay extends JPanel implements MouseMotionListener, MouseListener {
+
     private Double[][] graphicsData;
-    // Флаговые переменные, задающие правила отображения графика
+
     private boolean showAxis = true;
     private boolean showMarkers = true;
     private boolean antiClockRotate = false;
     private boolean mousePressed = false;
     private boolean mouseReleased = false;
-    private boolean zoom= false;
-    private boolean restore=false;
-    // Границы диапазона пространства, подлежащего отображению
-    int k=0;
+    private boolean zoom = false;
+    private boolean Coordinates = false;
+    private boolean mouseDragged=false;
+    private boolean mouseClicked=false;
+    private boolean MousePressedPoint=false;
+
+    int k = 0, pointNum;
     private double minX;
     private double maxX;
     private double minY;
     private double maxY;
-    Double[][] max=new Double[10][2];
-    Double[][] min=new Double[10][2];
-    // Используемый масштаб отображения
+    Double[][] max = new Double[10][2];
+    Double[][] min = new Double[10][2];
+
     private double scale;
-    // Различные стили черчения линий
+
     final private BasicStroke graphicsStroke;
     final private BasicStroke axisStroke;
     final private BasicStroke markerStroke;
     final private BasicStroke rectStroke;
-    // Различные шрифты отображения надписей
+
     final private Font axisFont;
     final private Font cursor;
-    // координаты курсора мыши
+
     int mouseX = 0, mouseY = 0;
     double mouseXto = 0, mouseYto = 0;
-    double InitialMouseX=0,  InitialMouseY=0;
-    double EndMouseX=0,  EndMouseY=0;
+    double СmouseXto = 0, СmouseYto = 0;
+    double InitialMouseX = 0, InitialMouseY = 0;
+    double EndMouseX = 0, EndMouseY = 0;
+
     public GraphicsDisplay() {
 // Цвет заднего фона области отображения - белый
         setBackground(Color.WHITE);
@@ -74,16 +76,14 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
                 BasicStroke.JOIN_MITER, 10.0f, new float[]{10, 5}, 0.0f);
 // Шрифт для подписей осей координат
         axisFont = new Font("Serif", Font.BOLD, 36);
-        cursor = new Font("Serif",Font.PLAIN,14);
+        cursor = new Font("Serif", Font.PLAIN, 14);
 
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
     }
 
     public void showGraphics(Double[][] graphicsData) {
-// Сохранить массив точек во внутреннем поле класса
         this.graphicsData = graphicsData;
-// Запросить перерисовку компонента, т.е. неявно вызвать paintComponent()
         repaint();
     }
 
@@ -100,7 +100,7 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (graphicsData == null || graphicsData.length == 0) return;
-        if (!zoom){
+        if (!zoom) {
             minX = graphicsData[0][0];
             maxX = graphicsData[graphicsData.length - 1][0];
             minY = graphicsData[0][1];
@@ -113,16 +113,15 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
                     maxY = graphicsData[i][1];
                 }
             }
-            min[0][1]=minY;
-            min[0][0]=minX;
-            max[0][1]=maxY;
-            max[0][0]=maxX;
-        }else {
+            min[0][1] = minY;
+            min[0][0] = minX;
+            max[0][1] = maxY;
+            max[0][0] = maxX;
+        } else {
             minX = min[k][0];
             maxX = max[k][0];
             minY = min[k][1];
             maxY = max[k][1];
-            restore=false;
         }
 
 
@@ -155,8 +154,11 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
         paintGraphics(canvas);
         if (showMarkers) paintMarkers(canvas);
         findCloseAreas(canvas);
+
+        if(!Coordinates)
+            Scaling(canvas);
         ShowPointsCoordinates(canvas);
-        Scaling(canvas);
+        ChangeFunction(canvas);
         canvas.setFont(oldFont);
         canvas.setPaint(oldPaint);
         canvas.setColor(oldColor);
@@ -204,7 +206,7 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
                 k++;
         }
         if (k > 1) {
-            Double[] x  = new Double[graphicsData.length];
+            Double[] x = new Double[graphicsData.length];
             Double[] y = new Double[graphicsData.length];
             for (int i = 0; i < graphicsData.length; i++) {
                 x[i] = graphicsData[i][0];
@@ -388,29 +390,34 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     }
 
     public void mouseClicked(MouseEvent e) {
-        if(e.getButton()==3) {
-            restore=true;
-            k--;
+        if (e.getButton() == 3) {
+            if (k > 0)
+                k--;
             repaint();
-
         }
+        mouseReleased=false;
+        mousePressed=false;
+        mouseDragged=false;
     }
 
     public void mousePressed(MouseEvent e) {
-        if(e.getButton()==1) {
+        if (e.getButton() == 1) {
             InitialMouseX = e.getX();
             InitialMouseY = e.getY();
             mousePressed = true;
+            mouseDragged=false;
+            mouseReleased=false;
             repaint();
         }
     }
 
     public void mouseReleased(MouseEvent e) {
-        if(e.getButton()==1) {
+        if (e.getButton() == 1) {
             EndMouseX = e.getX();
             EndMouseY = e.getY();
             mouseReleased = true;
-            repaint();
+            mousePressed=false;
+            mouseDragged=false;
         }
     }
 
@@ -423,13 +430,15 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     }
 
     public void mouseDragged(MouseEvent e) {
-        mouseXto=e.getX();
-        mouseYto=e.getY();
+        mouseXto = e.getX();
+        mouseYto = e.getY();
+        mouseDragged=true;
+
     }
 
     public void mouseMoved(MouseEvent e) {
-        mouseX=e.getX();
-        mouseY=e.getY();
+        mouseX = e.getX();
+        mouseY = e.getY();
         repaint();
     }
 
@@ -438,12 +447,18 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
         canvas.setFont(cursor);
         DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
         formatter.setMaximumFractionDigits(3);
-       for (Double[] point: graphicsData) {
+        int k = 0;
+        for (Double[] point : graphicsData) {
             Point2D p = xyToPoint(point[0], point[1]);
-            if ((mouseY<=(int)p.getY()+5)&&(mouseY>=(int)p.getY()-5)&&((mouseX<=(int)p.getX()+5)&&(mouseX>=(int)p.getX()-5))) {
+            if ((mouseY <= (int) p.getY() + 5) && (mouseY >= (int) p.getY() - 5) && ((mouseX <= (int) p.getX() + 5) && (mouseX >= (int) p.getX() - 5))) {
+                if (mousePressed) {
+                    Coordinates = true;
+                    pointNum = k;
+                }
                 canvas.drawString("X=" + formatter.format(point[0]) + "; Y=" + formatter.format(point[1]), (float) mouseX, (float) mouseY);
                 repaint();
             }
+            k++;
         }
     }
 
@@ -453,29 +468,43 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
         if (mousePressed) {
             repaint();
             canvas.drawRect((int) InitialMouseX, (int) InitialMouseY, (int) (mouseXto - InitialMouseX), (int) (mouseYto - InitialMouseY));
-        }
-        if (mouseReleased) {
-            k++;
-            zoom = true;
-            boolean flag = false;
-            for (Double[] point : graphicsData) {
-                Point2D.Double pos = xyToPoint(point[0], point[1]);
-                if (pos.getX() >= InitialMouseX && pos.getY() >= InitialMouseY && !flag && pos.getX() <= EndMouseX && pos.getY() <= EndMouseY) {
-                    min[k][0] = point[0];
-                    max[k][0] = point[0];
-                    min[k][1] = point[1];
-                    max[k][1] = point[1];
-                    flag = true;
-                    continue;
-                }
-                if (pos.getX() >= InitialMouseX && pos.getY() >= InitialMouseY && flag && pos.getX() <= EndMouseX && pos.getY() <= EndMouseY) {
-                    max[k][0] = point[0];
-                    if (min[k][1] > point[1])
+        } if (mouseReleased) {
+                k++;
+                zoom = true;
+                boolean flag = false;
+                for (Double[] point : graphicsData) {
+                    Point2D.Double pos = xyToPoint(point[0], point[1]);
+                    if (pos.getX() >= InitialMouseX && pos.getY() >= InitialMouseY && !flag && pos.getX() <= EndMouseX && pos.getY() <= EndMouseY) {
+                        min[k][0] = point[0];
+                        max[k][0] = point[0];
                         min[k][1] = point[1];
-                       if (max[k][1] < point[1])
-                           max[k][1] = point[1];
+                        max[k][1] = point[1];
+                        flag = true;
+                        continue;
+                    }
+                    if (pos.getX() >= InitialMouseX && pos.getY() >= InitialMouseY && flag && pos.getX() <= EndMouseX && pos.getY() <= EndMouseY) {
+                        max[k][0] = point[0];
+                        if (min[k][1] > point[1])
+                            min[k][1] = point[1];
+                        if (max[k][1] < point[1])
+                            max[k][1] = point[1];
+                    }
                 }
+                mouseReleased = false;
+                mousePressed = false;
+                mouseDragged=false;
             }
+    }
+
+    public void ChangeFunction(Graphics2D canvas) {
+        DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
+        formatter.setMaximumFractionDigits(3);
+        if (Coordinates && mouseDragged) {
+            repaint();
+            graphicsData[pointNum][1] = maxY - mouseYto / scale;
+        }
+        if(mouseReleased){
+            Coordinates=false;
             mouseReleased=false;
             mousePressed=false;
         }
