@@ -31,8 +31,7 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     private boolean zoom = false;
     private boolean Coordinates = false;
     private boolean mouseDragged=false;
-    private boolean mouseClicked=false;
-    private boolean MousePressedPoint=false;
+
 
     int k = 0, pointNum;
     private double minX;
@@ -54,7 +53,6 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
 
     int mouseX = 0, mouseY = 0;
     double mouseXto = 0, mouseYto = 0;
-    double СmouseXto = 0, СmouseYto = 0;
     double InitialMouseX = 0, InitialMouseY = 0;
     double EndMouseX = 0, EndMouseY = 0;
 
@@ -166,29 +164,18 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
     }
 
     protected void paintGraphics(Graphics2D canvas) {
-// Выбрать линию для рисования графика
         canvas.setStroke(graphicsStroke);
-// Выбрать цвет линии
         canvas.setColor(Color.RED);
-
-        /* Будем рисовать линию графика как путь, состоящий из множества cегментов (GeneralPath)
-         * Начало пути устанавливается в первую точку графика, после чего прямой соединяется со
-         * следующими точками
-         */
         GeneralPath graphics = new GeneralPath();
 
         for (int i = 0; i < graphicsData.length; i++) {
-// Преобразовать значения (x,y) в точку на экране point
             Point2D.Double point = xyToPoint(graphicsData[i][0], graphicsData[i][1]);
             if (i > 0) {
-// Не первая итерация цикла - вести линию в точку point
                 graphics.lineTo(point.getX(), point.getY());
             } else {
-// Первая итерация цикла - установить начало пути в точку point
                 graphics.moveTo(point.getX(), point.getY());
             }
         }
-// Отобразить график
         canvas.draw(graphics);
     }
 
@@ -468,7 +455,8 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
         if (mousePressed) {
             repaint();
             canvas.drawRect((int) InitialMouseX, (int) InitialMouseY, (int) (mouseXto - InitialMouseX), (int) (mouseYto - InitialMouseY));
-        } if (mouseReleased) {
+        }
+        if (mouseReleased&&(mouseXto-InitialMouseX)>0&&(mouseYto-InitialMouseY)>0) {
                 k++;
                 zoom = true;
                 boolean flag = false;
@@ -502,11 +490,20 @@ public class GraphicsDisplay extends JPanel implements MouseMotionListener, Mous
         if (Coordinates && mouseDragged) {
             repaint();
             graphicsData[pointNum][1] = maxY - mouseYto / scale;
+            canvas.drawString("X=" + formatter.format(graphicsData[pointNum][0]) + "; Y=" + formatter.format(graphicsData[pointNum][1]), (float) mouseX, (float) mouseYto);
         }
         if(mouseReleased){
             Coordinates=false;
             mouseReleased=false;
             mousePressed=false;
         }
+    }
+
+    public int getLength () {
+        return this.graphicsData.length;
+    }
+
+    public double getValueAt(int i, int j){
+        return this.graphicsData[i][j];
     }
 }
