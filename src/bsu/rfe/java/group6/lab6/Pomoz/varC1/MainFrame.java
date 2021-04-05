@@ -1,8 +1,10 @@
 package bsu.rfe.java.group6.lab6.Pomoz.varC1;
 
-import java.awt.BorderLayout;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFrame;
@@ -17,6 +19,8 @@ public class MainFrame extends JFrame {
     private static final int HEIGHT = 500;
     private JMenuItem pauseMenuItem;
     private JMenuItem resumeMenuItem;
+
+
     // Поле, по которому прыгают мячи
     private Field field = new Field();
     // Конструктор главного окна приложения
@@ -75,5 +79,8 @@ public class MainFrame extends JFrame {
         MainFrame frame = new MainFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
+
     }
+
+
 }
