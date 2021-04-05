@@ -4,10 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -121,28 +118,30 @@ public class Field extends JPanel implements MouseMotionListener, MouseListener 
     }
 
     public void ChangeDirection(Graphics2D canvas) {
-
         if (mousePressed) {
+
             for (BouncingBall ball : balls) {
                 x = ball.getX();
                 y = ball.getY();
                 radius = ball.getRadius();
                 if (MouseFromX <= x + radius && MouseFromX >= x - radius && MouseFromY <= y + radius && MouseFromY >= y - radius) {
-                    canvas.drawString("Тык", (int) MouseFromX, (int) MouseFromY);
                     k = balls.indexOf(ball);
                     inBall = true;
+                    pause();
                     break;
                 }
             }
             if (mouseDragged && inBall) {
+                pause();
                 X = balls.get(k).getX();
                 Y = balls.get(k).getY();
                 canvas.draw(new Line2D.Double(X, Y, MouseToX, MouseToY));
                 canvas.fillOval((int)MouseToX, (int)MouseToY, 10,10);
             }else
-                inBall=false;
-        }
-    }
+                inBall = false;
+        }else
+            resume();
 
+    }
 }
 
