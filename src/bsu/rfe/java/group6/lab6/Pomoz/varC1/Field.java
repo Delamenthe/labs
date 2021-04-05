@@ -89,9 +89,9 @@ public class Field extends JPanel implements MouseMotionListener, MouseListener 
     }
 
     public void mousePressed(MouseEvent e) {
-            mousePressed = true;
-            MouseFromX = e.getX();
-            MouseFromY = e.getY();
+        mousePressed = true;
+        MouseFromX = e.getX();
+        MouseFromY = e.getY();
     }
 
     public void mouseReleased(MouseEvent e) {
