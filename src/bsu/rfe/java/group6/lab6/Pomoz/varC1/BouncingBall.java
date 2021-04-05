@@ -2,11 +2,8 @@ package bsu.rfe.java.group6.lab6.Pomoz.varC1;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.awt.geom.Ellipse2D;
-public class BouncingBall implements Runnable, MouseMotionListener, MouseListener {
+public class BouncingBall implements Runnable {
     // Максимальный радиус, который может иметь мяч
     private static final int MAX_RADIUS = 40;
     // Минимальный радиус, который может иметь мяч
@@ -19,15 +16,14 @@ public class BouncingBall implements Runnable, MouseMotionListener, MouseListene
     // Текущие координаты мяча
     private double x;
     private double y;
-    private double MouseFromX=0, MouseFromY=0;
-    private double MouseToX=0,MouseToY=0;
+
 
     // Вертикальная и горизонтальная компонента скорости
     private int speed;
     private double speedX;
     private double speedY;
 
-    private boolean mousePressed=false, mouseReleased=false;
+
     // Конструктор класса BouncingBall
     public BouncingBall(Field field) {
 // Необходимо иметь ссылку на поле, по которому прыгает мяч,
@@ -119,42 +115,31 @@ public class BouncingBall implements Runnable, MouseMotionListener, MouseListene
         canvas.fill(ball);
     }
 
-    public void mouseClicked(MouseEvent e) {
-
+    public double getX() {
+        return x;
     }
 
-    public void mousePressed(MouseEvent e) {
-      if(e.getButton()==1) {
-          mousePressed=true;
-          mouseReleased=false;
-          MouseFromX = e.getX();
-          MouseFromY = e.getY();
-      }
+    public double getY() {
+        return y;
     }
 
-    public void mouseReleased(MouseEvent e) {
-        if(e.getButton()==1) {
-            mouseReleased=true;
-            mousePressed=false;
-            MouseToX = e.getX();
-            MouseToY = e.getY();
-        }
+    public int getRadius() {
+        return radius;
     }
 
-    public void mouseEntered(MouseEvent e) {
-
+    public void setX(double x) {
+        this.x = x;
     }
 
-    public void mouseExited(MouseEvent e) {
-
+    public void setY(double y) {
+        this.y = y;
     }
 
-    public void mouseDragged(MouseEvent e) {
-
+    public void setSpeedX(double speedX) {
+        this.speedX = speedX;
     }
 
-    public void mouseMoved(MouseEvent e) {
-
+    public void setSpeedY(double speedY) {
+        this.speedY = speedY;
     }
-
 }
