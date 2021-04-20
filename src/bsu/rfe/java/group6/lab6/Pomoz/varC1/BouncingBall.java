@@ -35,7 +35,8 @@ public class BouncingBall implements Runnable {
                 MIN_RADIUS)).intValue() + MIN_RADIUS;
 // Абсолютное значение скорости зависит от диаметра мяча,
 // чем он больше, тем медленнее
-        speed = new Double(Math.round(5*MAX_SPEED / radius)).intValue();
+            speed = new Double(Math.round(5*MAX_SPEED / radius)).intValue();
+
         if (speed>MAX_SPEED) {
             speed = MAX_SPEED;
         }

@@ -7,15 +7,19 @@ import java.awt.event.*;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import javax.swing.JPanel;
+import java.math.*;
+
 import javax.swing.Timer;
 @SuppressWarnings("serial")
 public class Field extends JPanel implements MouseMotionListener, MouseListener {
 
     private double MouseFromX=0, MouseFromY=0;
     private double MouseToX=0,MouseToY=0;
-    private boolean mousePressed=false, mouseDragged=false;
+    private boolean mousePressed=false, mouseDragged=false, mouseReleased=false;
     private double x,y;
     private double X,Y;
+
+    long startTime, endTime;
     private int k = 0;
     public int radius;
     // Флаг приостановленности движения
@@ -90,11 +94,14 @@ public class Field extends JPanel implements MouseMotionListener, MouseListener 
 
     public void mousePressed(MouseEvent e) {
         mousePressed = true;
+        mouseReleased=false;
         MouseFromX = e.getX();
         MouseFromY = e.getY();
+
     }
 
     public void mouseReleased(MouseEvent e) {
+        mouseReleased=true;
         mouseDragged = false;
         mousePressed=false;
     }
@@ -119,7 +126,7 @@ public class Field extends JPanel implements MouseMotionListener, MouseListener 
 
     public void ChangeDirection(Graphics2D canvas) {
         if (mousePressed) {
-
+           startTime = System.currentTimeMillis();
             for (BouncingBall ball : balls) {
                 x = ball.getX();
                 y = ball.getY();
@@ -137,11 +144,15 @@ public class Field extends JPanel implements MouseMotionListener, MouseListener 
                 Y = balls.get(k).getY();
                 canvas.draw(new Line2D.Double(X, Y, MouseToX, MouseToY));
                 canvas.fillOval((int)MouseToX, (int)MouseToY, 10,10);
+                balls.get(k).setSpeedX(-(MouseToX-MouseFromX)/(endTime - startTime)*5);
+                balls.get(k).setSpeedY(-(MouseToY-MouseFromY)/(endTime - startTime)*5);
             }else
                 inBall = false;
         }else
+        {
+            endTime = System.currentTimeMillis();
             resume();
-
+        }
     }
 }
 
