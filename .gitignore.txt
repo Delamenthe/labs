@@ -1,0 +1,3 @@
+.idea
+Lab_7.iml
+.git
