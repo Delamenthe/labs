@@ -1,3 +1,4 @@
 .idea
-Srever.iml
+Server.iml
+Client.iml
 .git
