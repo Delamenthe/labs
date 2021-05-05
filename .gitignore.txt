@@ -1,4 +1,5 @@
-.idea
+*.idea
 Server.iml
 Client.iml
-.git
+Phone.iml
+*.git
