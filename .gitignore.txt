@@ -1,5 +1,4 @@
 *.idea
-Server.iml
-Client.iml
+MainFrame.iml
 Phone.iml
 *.git
