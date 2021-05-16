@@ -63,6 +63,7 @@ public class Phone implements Closeable{
 
     @Override
     public void close() throws IOException {
+        System.out.println("Close");
         writer.close();
         reader.close();
         socket.close();
