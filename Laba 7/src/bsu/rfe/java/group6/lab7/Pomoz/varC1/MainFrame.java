@@ -7,12 +7,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
+import java.net.Socket;
 import java.util.ArrayList;
 import javax.swing.*;
 import static javax.swing.BoxLayout.*;
+import java.util.Scanner;
+import java.lang.String;
 
 public class MainFrame extends JFrame {
     private static final String FRAME_TITLE = "Клиент мгновенных сообщений";
@@ -31,11 +31,13 @@ public class MainFrame extends JFrame {
     private final JTextArea textAreaOutgoing;
     private  JTextArea textAreaConversation;
     private JLabel User;
-    private String inMessage;
-    private String outMessage;
+    private Scanner inMessage;
+    private PrintWriter outMessage;
     private Boolean send;
+    private Socket clientSocket;
 
     public MainFrame() {
+
         super(FRAME_TITLE);
         setMinimumSize(
                 new Dimension(FRAME_MINIMUM_WIDTH, FRAME_MINIMUM_HEIGHT));
@@ -43,6 +45,7 @@ public class MainFrame extends JFrame {
         final Toolkit kit = Toolkit.getDefaultToolkit();
         setLocation((kit.getScreenSize().width - getWidth()) / 2,
                 (kit.getScreenSize().height - getHeight()) / 2);
+
 
         textAreaIncoming = new JTextArea(INCOMING_AREA_DEFAULT_ROWS,1);
         textAreaConversation = new JTextArea(INCOMING_AREA_DEFAULT_ROWS,1);
@@ -117,7 +120,16 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 User.setText("");
                 textAreaConversation.setText("");
-        }
+                try {
+                    outMessage.println("##session##end##");
+                    outMessage.flush();
+                    outMessage.close();
+                    inMessage.close();
+                    clientSocket.close();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
        });
 
 
@@ -177,6 +189,7 @@ public class MainFrame extends JFrame {
         final JButton sendButton = new JButton("Отправить");
         sendButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                sendMsg();
             }
         });
 
@@ -257,27 +270,38 @@ public class MainFrame extends JFrame {
             }
         }).start();*/
 
-        new Thread(() -> {
-            try(ServerSocket server = new ServerSocket(SERVER_PORT))
-            {
-                System.out.println("Server started");
-                while(!Thread.interrupted()) {
-                    Phone phone = new Phone(server);
-                    final String request = phone.readLine();
-                    System.out.println("Request: " + request);
-                    textAreaConversation.append(request + "\n");
-                    try {phone.close(); } catch (IOException e) {  }
+        // в отдельном потоке начинаем работу с сервером
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    while (true) {
+                        // если есть входящее сообщение
+                        if (inMessage.hasNext()) {
+                            // считываем его
+                            String inMes = inMessage.nextLine();
+
+                            // выводим сообщение
+                            textAreaConversation.append(inMes + "\n");
+                        }
+                    }
+                } catch (Exception e) {
                 }
-            } catch (IOException e){
-                throw new RuntimeException(e);
             }
         }).start();
+
     }
 
 
     private void NewClient(String ip){
-
-    try(Phone phone = new Phone(ip,SERVER_PORT))
+        try {
+            // подключаемся к серверу
+            clientSocket = new Socket(ip, SERVER_PORT);
+            inMessage = new Scanner(clientSocket.getInputStream());
+            outMessage = new PrintWriter(clientSocket.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    /*try(Phone phone = new Phone(ip,SERVER_PORT))
     {
         phone.writeLine(textAreaOutgoing.getText());
         System.out.println("Connected to server");
@@ -292,10 +316,19 @@ public class MainFrame extends JFrame {
         JOptionPane.showMessageDialog(MainFrame.this,
                 "Не удалось отправить сообщение", "Ошибка",
                 JOptionPane.ERROR_MESSAGE);
-    }
+    }*/
 }
 
-
+    public void sendMsg() {
+        // формируем сообщение для отправки на сервер
+        JTextField SenderName = new JTextField(String.valueOf(User));
+        JTextField message = new JTextField(String.valueOf(textAreaOutgoing));
+        String messageStr = SenderName.getText() + ": " + message.getText();
+        // отправляем сообщение
+        outMessage.println(messageStr);
+        outMessage.flush();
+        message.setText("");
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
