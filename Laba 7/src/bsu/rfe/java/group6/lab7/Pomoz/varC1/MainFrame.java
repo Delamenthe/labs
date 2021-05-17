@@ -1,9 +1,5 @@
 package bsu.rfe.java.group6.lab7.Pomoz.varC1;
 
-import com.sun.deploy.panel.JSmartTextArea;
-import com.sun.deploy.util.SessionState;
-import jdk.nashorn.internal.scripts.JO;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,7 +11,6 @@ import java.rmi.UnknownHostException;
 import java.util.ArrayList;
 import javax.swing.*;
 import static javax.swing.BoxLayout.*;
-import java.util.Scanner;
 import java.lang.String;
 
 public class MainFrame extends JFrame {
@@ -23,7 +18,6 @@ public class MainFrame extends JFrame {
     private static final int FRAME_MINIMUM_WIDTH = 1000;
     private static final int FRAME_MINIMUM_HEIGHT = 500;
     private static final int FROM_FIELD_DEFAULT_COLUMNS = 5;
-    private static final int TO_FIELD_DEFAULT_COLUMNS = 20;
     private static final int INCOMING_AREA_DEFAULT_ROWS = 10;
     private static final int OUTGOING_AREA_DEFAULT_ROWS = 5;
     private static final int SMALL_GAP = 5;
@@ -35,7 +29,6 @@ public class MainFrame extends JFrame {
     private final JTextArea textAreaOutgoing;
     private  JTextArea textAreaConversation;
     private JLabel User;
-    private Socket clientSocket;
     private String ip;
     private String name;
 
@@ -112,7 +105,6 @@ public class MainFrame extends JFrame {
                         User.setText(username);
                         tabbedPane.removeAll();
                         tabbedPane.add("Добро пожаловать, "+ User.getText(),welcome);
-                        NewClient(password);
                     flag=false;
                     }
                     else{
@@ -259,27 +251,17 @@ public class MainFrame extends JFrame {
         new Thread(() -> {
             try {
                 final ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
-                while (!Thread.interrupted()) {
+                while (true) {
                     final Socket socket = serverSocket.accept();
-                    final DataInputStream in = new DataInputStream(
-                            socket.getInputStream());
-                    final String senderName = in.readUTF();
-                    final String message = in.readUTF();
-                    final String name = in.readUTF();
-                    final String flag = in.readUTF();
-                    socket.close();
-                    final String address = ((InetSocketAddress) socket
-                            .getRemoteSocketAddress())
-                            .getAddress()
-                            .getHostAddress();
-                    if (flag.equals("true")){
-                        textAreaConversation.append(name + " (" + address + "): "
-                                +  "Привет, "+ senderName  + "!\n");
+                    BufferedReader reader =
+                            new BufferedReader(
+                                    new InputStreamReader(
+                                            socket.getInputStream()));
+                    String senderName =reader.readLine();
+                    String message =reader.readLine();
 
-                    }else{
-                        textAreaOutgoing.setText("");
-                        textAreaConversation.setText("");
-                    }
+                    textAreaConversation.append(senderName +" -> " + name +" : "+ message + "\n");
+
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -290,34 +272,23 @@ public class MainFrame extends JFrame {
         }).start();
     }
 
-
-    private void NewClient(String ip){
-        try {
-            // подключаемся к серверу
-            System.out.println("New client");
-            clientSocket = new Socket(ip, SERVER_PORT);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-}
-
     public void sendMsg(String ip, String name) {
         try {
-            JTextField SenderName = new JTextField(name);
-            JTextField message = new JTextField(textAreaOutgoing.getText());
+            String SenderName = User.getText();
+            String message = textAreaOutgoing.getText();
             if(User.getText().isEmpty()){
                 JOptionPane.showMessageDialog(MainFrame.this,
                         "Войдите в аккаунт", "Ошибка",
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if (SenderName.getText().isEmpty()) {
+            if (SenderName.isEmpty()) {
                 JOptionPane.showMessageDialog(MainFrame.this,
                         "Выберите собеседника", "Ошибка",
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if (message.getText().isEmpty()) {
+            if (message.isEmpty()) {
                 JOptionPane.showMessageDialog(MainFrame.this,
                         "Введите текст сообщения", "Ошибка",
                         JOptionPane.ERROR_MESSAGE);
@@ -325,12 +296,16 @@ public class MainFrame extends JFrame {
             }
 
             try (Socket socket = new Socket(ip, SERVER_PORT)) {
-                final DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                out.writeUTF(User.getText());
-                out.writeUTF(message.getText());
-                out.writeUTF(name);
-                out.writeUTF("true");
-                textAreaConversation.append("Я -> " + SenderName.getText() +" : "+ message.getText() + "\n");
+
+                BufferedWriter writer =
+                        new BufferedWriter(
+                                new OutputStreamWriter(
+                                        socket.getOutputStream()));
+                writer.write(SenderName);
+                writer.newLine();
+                writer.write(message);
+                writer.flush();
+                socket.close();
                 textAreaOutgoing.setText("");
             }
         } catch (UnknownHostException e) {
