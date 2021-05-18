@@ -13,6 +13,7 @@
 <c:choose>
 	<c:when test="${sessionScope.errorMessage==null}">
 		<%-- Ошибок не возникло, переадресовать на страницу личного кабинета --%>
+
 		<c:redirect url="/cabinet.jsp" />
 	</c:when>
 	<c:otherwise>

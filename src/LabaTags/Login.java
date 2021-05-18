@@ -1,12 +1,14 @@
 package LabaTags;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.SimpleTagSupport;
 
 import LabaPacks.User;
+import LabaPacks.UserActiveList;
 import LabaPacks.UserList;
 
 public class Login extends SimpleTagSupport {
@@ -31,7 +33,7 @@ public class Login extends SimpleTagSupport {
 
 
         String errorMessage = null;
-
+        UserActiveList activeList = new UserActiveList();
 
         UserList userList = (UserList) 	getJspContext().getAttribute("users", PageContext.APPLICATION_SCOPE);
 
@@ -51,6 +53,7 @@ public class Login extends SimpleTagSupport {
 
 
                 getJspContext().setAttribute("authUser", user,  PageContext.SESSION_SCOPE);
+                activeList.addUserActive( user.getName() );
             }
         }
 
