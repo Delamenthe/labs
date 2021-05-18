@@ -19,17 +19,16 @@ public class MessageListServlet extends ChatServlet {
 
         pw.println("<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'/><meta http-equiv='refresh' content='10'></head>");
         pw.println("<body>");
-        for (int i = messages.size() - 1; i >= 0; i--) {
+        for(int i=messages.size()-1; i>=0; i--) {
+
             ChatMessage aMessage = messages.get(i);
-            if (aMessage.getStyle().equals("normal")) {
-                pw.println("<div><strong>" + aMessage.getAuthor().getName() + "</strong> : " + aMessage.getMessage() + "</div>");
-            }
-            if (aMessage.getStyle().equals("whisper")) {
-                pw.println("<div><strong>" + aMessage.getAuthor().getName() + "</strong> : <em><small>" + aMessage.getMessage() + "</small></em></div>");
-            }
-            if (aMessage.getStyle().equals("scream")) {
-                pw.println("<div><strong>" + aMessage.getAuthor().getName() + " :<style> .colortext { color:red;} </style> <big><big><big><span class=colortext>" + aMessage.getMessage() + "</span></big></big></big></strong></div>");
-            }
+            if(aMessage.getStyle().equals("simple")){
+                pw.println("<div><strong>"+ aMessage.getAuthor().getName() + "</strong> : "+ aMessage.getMessage() +  "</div>");}
+            if(aMessage.getStyle().equals("whisper")){
+                pw.println("<div><strong>"+ aMessage.getAuthor().getName() + "</strong> : <em><small>"+ aMessage.getMessage() +  "</small></em></div>");}
+            if(aMessage.getStyle().equals("scream")){
+                pw.println("<div><strong>"+ aMessage.getAuthor().getName() + " :<style> .colortext { color:red;} </style> <big><big><big><span class=colortext>"+ aMessage.getMessage() +  "</span></big></big></big></strong></div>");}
         }
+        pw.println("</body></html>");
     }
 }
